@@ -22,29 +22,49 @@ Planilha de treino e dieta é ruim de abrir no celular. Copiar tudo para um app 
 | `(15kg)` | Carga usada da última vez |
 | `(12x10x10)` | Reps feitas em cada série com essa carga |
 
-## Estado atual: protótipo 0.1
+## Estrutura
 
-`index.html` é um protótipo interativo usado para validar o design. É uma página única que usa Preact e htm via CDN e não precisa de build.
+| Caminho | O que é |
+|---|---|
+| `src/app.html` | Fonte única do app (HTML, CSS e JS numa página). É também o que vai para o Artifact do Claude, por isso não tem `<!doctype>`/`<head>` próprios. |
+| `docs/` | O PWA pronto para publicar. É **gerado**: não edite à mão. |
+| `tools/build.py` | Gera `docs/` a partir de `src/app.html`: documento completo, manifesto, service worker com versão nova e biblioteca local (offline). |
+| `tools/make_icons.js` | Gera os ícones em `docs/icons` (rodar só quando o ícone mudar). |
+| `tools/sw.template.js` | Modelo do service worker. |
 
-- Tela inicial com um card de treino e um card de dieta
+Depois de mudar `src/app.html`:
+
+```bash
+python3 tools/build.py
+```
+
+## PWA
+
+O app pode ser instalado no celular como um app comum: ícone na tela inicial, tela cheia e funcionamento sem internet. Para isso, `docs/` precisa ser publicado num endereço HTTPS. Duas opções:
+
+- **GitHub Pages:** Settings → Pages → Source "Deploy from a branch" → branch `master`, pasta `/docs`. Em conta gratuita, o Pages só funciona com o repositório público.
+- **Netlify ou Cloudflare Pages:** conecte o repositório (pode continuar privado), sem comando de build, com a pasta de publicação `docs`.
+
+No Android (Chrome ou Samsung Internet): abra o endereço → menu → **Instalar app** / **Adicionar à tela inicial**.
+
+## Estado atual: protótipo
+
+- Tela inicial com um card de treino e um card de dieta; o nome da ficha é editável
 - Montagem modular do treino, exercício por exercício: técnica, séries, faixa de reps, nome, última carga e descanso
-- Seções de aquecimento, exercícios e cardio (o cardio fica numa caixa separada)
+- Seções de aquecimento, exercícios e cardio, cada uma em sua caixa
 - Registro do treino do dia: carga e reps por série, com os valores da última vez já preenchidos
-- Cronômetro de descanso por exercício, que vibra e apita no fim e depois conta o tempo extra
-- Indicador ↑ quando é hora de subir a carga, porque o topo da faixa foi batido em todas as séries
-- Histórico por exercício, com gráfico da carga
+- Cronômetro do treino no topo e cronômetro de descanso no botão de cada exercício (vibra e apita no fim)
+- Indicador ↑ quando é hora de subir a carga
 - Legenda das técnicas, recolhida por padrão
-- Tema claro, escuro ou do sistema
-- Cores dos cards na paleta do Google Keep, com versões clara e escura
+- Tema claro, escuro ou do sistema; cores dos cards na paleta do Google Keep
 
-Limitações do protótipo:
+Limitações:
 
-- Os dados ficam no `localStorage` do navegador. Isso não é um armazenamento confiável.
+- Os dados ficam no `localStorage` do navegador (no PWA instalado, ficam no próprio app). Ainda não há backup.
 - A dieta e o histórico de sessões que vêm de fábrica são dados de exemplo.
-- O arquivo não tem `<!doctype>`, `<html>`, `<head>` nem `<body>` porque é publicado como um Artifact do Claude, que adiciona essa estrutura. Para abrir localmente com fidelidade, coloque o conteúdo dentro de um documento HTML com `<!doctype html>`.
 
 ## Próximos passos
 
 1. Ajustar o design do protótipo até ficar bom.
-2. Construir o app de verdade como **PWA**: instalável na tela inicial, funcionando offline e com histórico em IndexedDB no aparelho.
+2. Trocar o `localStorage` por IndexedDB e adicionar exportar/importar backup.
 3. Depois: calcular macros e kcal da dieta, e talvez empacotar o app para a Play Store.

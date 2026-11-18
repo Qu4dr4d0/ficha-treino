@@ -1,3 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#202124">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
 <title>Ficha Treino e Dieta</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -346,7 +361,7 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 <div id="app"></div>
 
 <script type="module">
-import { html, render, useState, useEffect, useRef, useCallback, createContext, useContext } from 'https://cdn.jsdelivr.net/npm/htm@3.1.1/preact/standalone.module.js';
+import { html, render, useState, useEffect, useRef, useCallback, createContext, useContext } from './vendor/htm-preact-3.1.1.js';
 
 /* ================= utilidades ================= */
 const KEY = 'ficha:v1';
@@ -1341,6 +1356,9 @@ function App({ hot }) {
     if (route.name === 'workout') { const w = data.workouts.find((x) => x.id === route.id); col = w && w.color; }
     else if (route.name === 'diet') col = data.diet.color;
     document.documentElement.style.setProperty('--screen-bg', col ? `var(--c-${col})` : 'var(--bg)');
+    // no app instalado, a barra de status do celular acompanha a cor da tela
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', getComputedStyle(document.documentElement).getPropertyValue('--screen-bg').trim() || '#202124');
   }, [route, data]);
 
   useEffect(() => {
@@ -1412,3 +1430,11 @@ const start = (hotData) => render(html`<${App} hot=${hotData && hotData.data} />
 try { window.claude?.hot?.snapshot?.(() => ({ data: latest })); } catch (e) {}
 if (window.claude?.hot?.ready) window.claude.hot.ready(start); else start(window.claude?.hot?.data ?? {});
 </script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>
