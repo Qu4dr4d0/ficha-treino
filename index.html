@@ -83,12 +83,12 @@ ul{list-style:none}
 .card-head .ib .i{width:20px;height:20px}
 .live-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--good)}
 .live-tag::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--good);animation:blink 1.6s ease-in-out infinite}
-.wtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-4px -16px 0;padding:0 16px}
+.wtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-4px -16px 6px;padding:0 16px}
 .wtabs::-webkit-scrollbar{display:none}
 .chip-sm{flex:none;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--hair);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .chip-sm.sel{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
 .chip-sm .i{width:15px;height:15px}
-.card-body{display:flex;flex-direction:column;gap:12px;cursor:pointer;border-radius:12px}
+.card-body{display:flex;flex-direction:column;gap:18px;cursor:pointer;border-radius:12px}
 .card-title{font-family:var(--font-num);font-stretch:88%;font-weight:800;font-size:23px;line-height:1.12;text-wrap:balance}
 .card-sub{font-size:13px;color:var(--fg2);margin-top:3px}
 .pv-grid{display:grid;grid-template-columns:auto max-content minmax(0,1fr) auto;column-gap:8px;row-gap:6px;align-items:center;font-size:14px;line-height:1.3}
@@ -188,12 +188,14 @@ ul{list-style:none}
 .reorder{display:flex;flex-direction:column;padding:6px 6px 6px 0}
 .reorder .ib{width:38px;height:30px;border-radius:9px}
 .reorder .ib .i{width:20px;height:20px}
-.log{padding:12px 12px 14px;margin-top:2px;border-top:1px solid var(--hair);display:flex;flex-direction:column;gap:8px}
+.log{padding:0 12px 14px;display:flex;flex-direction:column;gap:8px}
 .tq-note{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--tint);font-size:14px;line-height:1.35}
 .tq-note b{font-weight:700}
 .tq-note .calc{font-family:var(--font-num);font-stretch:80%;font-weight:700;font-variant-numeric:tabular-nums}
 .log-row{display:grid;grid-template-columns:54px auto minmax(0,1fr) 40px;align-items:center;gap:10px}
-.log-row.load-row{grid-template-columns:54px auto minmax(0,1fr);padding-bottom:10px;margin-bottom:2px;border-bottom:1px solid var(--hair)}
+.log-row.load-row{grid-template-columns:54px auto minmax(0,1fr);padding:10px 0;margin-bottom:2px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.key .pill{font-size:14.5px;font-weight:700}
+.legend-tq{padding-top:14px;border-top:1px solid var(--hair)}
 .lbl{font-size:13px;font-weight:600;color:var(--fg2);white-space:nowrap}
 .set.is-done .lbl{color:var(--good)}
 .hint{font-size:12.5px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -368,7 +370,7 @@ const findEx = (w, id) => allEx(w).find((e) => e.id === id);
 const techOf = (d, id) => (id ? d.techniques.find((t) => t.id === id) || null : null);
 const shouldUp = (e) => e.min !== e.max && e.last.reps.length >= e.sets && e.last.reps.every((r) => r >= e.max);
 const half = (v) => Math.round(v * 2) / 2;
-const notation = (e, t) => `${t ? `[${t.sym}] ` : ''}${e.sets}x${e.min === e.max ? e.min : `${e.min}-${e.max}`} → ${e.name || 'Exercício'}${e.last.w != null ? ` (${fmtNum(e.last.w)}kg)` : ''}${e.last.reps.length ? `\n(${e.last.reps.join('x')})` : ''}`;
+const notation = (e, t) => `${t ? `[${upSym(t.sym)}] ` : ''}${e.sets}x${e.min === e.max ? e.min : `${e.min}-${e.max}`} → ${e.name || 'Exercício'}${e.last.w != null ? ` (${fmtNum(e.last.w)}kg)` : ''}${e.last.reps.length ? `\n(${e.last.reps.join('x')})` : ''}`;
 const cardStyle = (k) => `--cbg:var(--c-${k});--cborder:${k === 'default' ? 'var(--line)' : 'transparent'}`;
 const tap = (fn) => ({ role: 'button', tabindex: 0, onClick: (e) => { e.stopPropagation(); fn(); }, onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } } });
 
@@ -434,9 +436,9 @@ function seed() {
     v: 1,
     settings: { theme: 'system', rest: 90, autoRest: false, sound: true, vibrate: true },
     techniques: [
-      { id: 'feeder', sym: '𝐟', name: 'Feeder', desc: '1 série antes das válidas, com 50% da carga de trabalho e 6 reps.', pct: 50, reps: 6 },
-      { id: 'drop', sym: '𝐝', name: 'Drop-set', desc: 'Na última série, ao chegar na falha, tire cerca de 25% da carga e continue sem descanso.', pct: null, reps: null },
-      { id: 'rp', sym: '𝐫𝐩', name: 'Rest-pause', desc: 'Ao chegar na falha, descanse 15 s e faça mais reps com a mesma carga.', pct: null, reps: null },
+      { id: 'feeder', sym: '𝐅', name: 'Feeder', desc: '1 série antes das válidas, com 50% da carga de trabalho e 6 reps.', pct: 50, reps: 6 },
+      { id: 'drop', sym: '𝐃', name: 'Drop-set', desc: 'Na última série, ao chegar na falha, tire cerca de 25% da carga e continue sem descanso.', pct: null, reps: null },
+      { id: 'rp', sym: '𝐑𝐏', name: 'Rest-pause', desc: 'Ao chegar na falha, descanse 15 s e faça mais reps com a mesma carga.', pct: null, reps: null },
     ],
     workouts: [w],
     sel: w.id,
@@ -525,7 +527,8 @@ const HOST_THEME = document.documentElement.getAttribute('data-theme');
 let latest = null;
 
 /* ================= peças pequenas ================= */
-function Tq({ t, xs }) { return t ? html`<span class=${'tq' + (xs ? ' tq-xs' : '')} title=${t.name}>${t.sym}</span>` : null; }
+const upSym = (s) => Array.from(s || '').map((ch) => { const cp = ch.codePointAt(0); return cp >= 0x1D41A && cp <= 0x1D433 ? String.fromCodePoint(cp - 26) : ch.toUpperCase(); }).join('');
+function Tq({ t, xs }) { return t ? html`<span class=${'tq' + (xs ? ' tq-xs' : '')} title=${t.name}>${upSym(t.sym)}</span>` : null; }
 
 function Stepper({ id, value, step = 1, min = 0, max = 999, unit, decimals, onChange, label }) {
   const [txt, setTxt] = useState(null);
@@ -667,7 +670,7 @@ function Home() {
   const w = data.workouts.find((x) => x.id === data.sel) || data.workouts[0];
   return html`<div class="screen"><div class="wrap">
     <header class="home-top">
-      <div class="brand"><span class="brand-mark" aria-hidden="true">𝐟</span>Ficha</div>
+      <div class="brand">Ficha</div>
       <div class="home-icons">
         <button class="ib" aria-label="Histórico" onClick=${() => c.go({ name: 'history' })}>${I.history()}</button>
         <button class="ib" aria-label="Ajustes" onClick=${() => c.go({ name: 'settings' })}>${I.sliders()}</button>
@@ -702,7 +705,7 @@ function LogPanel({ w, e, entry, tech }) {
     ${entry.reps.map((r, i) => html`<div class=${'log-row set' + (entry.done[i] ? ' is-done' : '')} key=${i}>
       <span class="lbl">Série ${i + 1}</span>
       <${Stepper} id=${`r-${e.id}-${i}`} value=${r} min=${0} max=${100} label=${`reps da série ${i + 1}`} onChange=${(v) => set((en) => { en.reps[i] = v; })} />
-      <span class="hint">${e.last.reps[i] != null ? `antes ${e.last.reps[i]}` : ''}</span>
+      <span></span>
       <button type="button" class=${'chk' + (entry.done[i] ? ' on' : '')} aria-pressed=${entry.done[i]} aria-label=${`Série ${i + 1} feita`} onClick=${() => toggle(i)}>${I.check()}</button>
     </div>`)}
   </div>`;
@@ -760,13 +763,13 @@ function Legend() {
     ${open && html`<div class="legend-b">
       <dl class="key">
         ${t0 && html`<div><dt><${Tq} t=${t0} /></dt><dd>Técnica avançada do exercício</dd></div>`}
-        <div><dt class="num">3×10–12</dt><dd>3 séries de 10 a 12 repetições</dd></div>
-        <div><dt class="num">15 kg</dt><dd>Carga que você usou da última vez</dd></div>
-        <div><dt class="num">12 · 10 · 10</dt><dd>Reps feitas em cada série com essa carga</dd></div>
+        <div><dt><span class="pill num">3×10–12</span></dt><dd>3 séries de 10 a 12 repetições</dd></div>
+        <div><dt><span class="pill num">15 kg</span></dt><dd>Carga que você usou da última vez</dd></div>
+        <div><dt><span class="pill num reps">12 · 10 · 10</span></dt><dd>Reps feitas em cada série com essa carga</dd></div>
         <div><dt><span class="up">${I.arrowUp()}</span></dt><dd>Bateu o topo da faixa em todas as séries: hora de subir a carga</dd></div>
         <div><dt><span class="rest static">${I.timer()}1:30</span></dt><dd>Toque ao terminar a série para contar o descanso</dd></div>
       </dl>
-      <h3 class="eyebrow">Técnicas</h3>
+      <h3 class="eyebrow legend-tq">Técnicas</h3>
       <ul class="tech-list">${c.data.techniques.map((t) => html`<li key=${t.id}><${Tq} t=${t} /><div><b>${t.name}</b><div class="mut">${t.desc}</div></div></li>`)}</ul>
       <div><button class="link" onClick=${() => c.go({ name: 'settings' })}>${I.edit()} Editar técnicas</button></div>
     </div>`}
@@ -1160,7 +1163,7 @@ function TechSheet({ tid }) {
   };
   return html`<${Sheet} title=${orig ? 'Editar técnica' : 'Nova técnica'}>
     <div class="row">
-      <div class="field" style="width:6.5em"><label for="tq-sym">Símbolo</label><input id="tq-sym" class="txt" maxlength="4" autocomplete="off" placeholder="𝐟" value=${f.sym} onInput=${(ev) => { S('sym', ev.target.value); setErr(''); }} /></div>
+      <div class="field" style="width:6.5em"><label for="tq-sym">Símbolo</label><input id="tq-sym" class="txt" maxlength="4" autocomplete="off" placeholder="𝐅" value=${f.sym} onInput=${(ev) => { S('sym', ev.target.value); setErr(''); }} /></div>
       <div class="field grow"><label for="tq-name">Nome</label><input id="tq-name" class="txt" autocomplete="off" placeholder="Ex.: Feeder" value=${f.name} onInput=${(ev) => { S('name', ev.target.value); setErr(''); }} /></div>
     </div>
     ${err && html`<span class="err">${err}</span>`}
