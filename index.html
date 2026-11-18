@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&family=Nunito:wght@800;900&display=swap">
 <style>
 /* Layout: uma coluna de app de celular (até 480px). Na home, cards no estilo bloco de notas; as telas de treino e dieta assumem a cor do card; edições sobem em sheets e o descanso flutua num dock fixo embaixo. */
 :root{
@@ -16,7 +16,7 @@
   --screen-bg:var(--bg);
   --font-ui:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --font-num:"Archivo","Arial Narrow",system-ui,sans-serif;
-  --font-sym:"Cambria Math","STIX Two Math","Noto Sans Math",Georgia,serif;
+  --font-sym:"Nunito",ui-rounded,"SF Pro Rounded","Varela Round",system-ui,sans-serif;
   --r-card:18px; --r-row:14px;
 }
 @media (prefers-color-scheme: dark){
@@ -75,7 +75,10 @@ ul{list-style:none}
 .home-top{display:flex;align-items:center;justify-content:space-between;padding-top:14px}
 .home-icons{display:flex;margin-right:-10px}
 .brand{font-family:var(--font-num);font-weight:900;font-stretch:68%;font-size:34px;line-height:1;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
-.brand-mark{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--ink);color:var(--on-ink);font-family:var(--font-sym);font-size:20px;font-weight:700;font-stretch:100%}
+.brand{min-width:0;text-align:left;border-radius:10px}
+.brand>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brand-ed{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--tint2);color:var(--fg2);flex:none}
+.brand-ed .i{width:16px;height:16px}
 .today{color:var(--fg2);font-size:14px;margin-top:-8px}
 .card{background:var(--cbg);border:1px solid var(--cborder);border-radius:var(--r-card);padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px;transition:background-color .25s}
 .card-head{display:flex;align-items:center;gap:8px;min-height:36px}
@@ -93,15 +96,15 @@ ul{list-style:none}
 .card-sub{font-size:13px;color:var(--fg2);margin-top:3px}
 .pv-grid{display:grid;grid-template-columns:auto max-content minmax(0,1fr) auto;column-gap:8px;row-gap:6px;align-items:center;font-size:14px;line-height:1.3}
 .pv{display:contents}
-.pv-label{grid-column:1/-1;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fg2);margin-top:6px}
+.pv-label{grid-column:1/-1;display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fg2);margin-top:6px}
 .pv-label:first-child{margin-top:0}
+.pv-label .i{width:14px;height:14px}
 .pv-s{font-weight:700;font-size:14.5px;white-space:nowrap}
 .pv-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pv-w{color:var(--fg2);font-weight:700;font-size:14px}
 .pv-cardio{display:flex;align-items:center;gap:8px;font-size:14px;padding-top:10px;border-top:1px dashed var(--hair)}
 .pv-cardio .i{width:18px;height:18px;color:var(--fg2)}
 .tap-card{cursor:pointer}
-.del-w{align-self:center;margin-top:4px}
 .mp-list{display:flex;flex-direction:column;gap:10px}
 .mp{display:grid;grid-template-columns:3em minmax(0,1fr);column-gap:10px;row-gap:1px;align-items:baseline}
 .mp-t{font-weight:700;color:var(--fg2);font-size:14.5px}
@@ -141,7 +144,7 @@ ul{list-style:none}
 .sw-t.on span{left:24px;background:var(--on-ink)}
 
 /* técnica avançada */
-.tq{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:7px;background:var(--ink);color:var(--on-ink);font-family:var(--font-sym);font-weight:700;font-size:14px;line-height:1;flex:none;font-stretch:100%}
+.tq{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:7px;background:var(--ink);color:var(--on-ink);font-family:var(--font-sym);font-weight:900;font-size:15px;line-height:1;flex:none;font-stretch:100%}
 .tq-xs{min-width:19px;height:19px;font-size:12.5px;border-radius:6px;padding:0 4px}
 
 /* ---------- tela do treino ---------- */
@@ -155,8 +158,10 @@ ul{list-style:none}
 .log-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1)}
 .log-wrap.open{grid-template-rows:1fr}
 .log-clip{overflow:hidden;min-height:0}
-.log-clip>.log{opacity:0;transform:translateY(-6px);transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1)}
-.log-wrap.open .log-clip>.log{opacity:1;transform:none}
+.chev{flex:none!important;display:grid;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.chev.up{transform:rotate(180deg)}
+.log-clip>.legend-b,.log-clip>.log{opacity:0;transform:translateY(-6px);transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1)}
+.log-wrap.open .log-clip>.legend-b,.log-wrap.open .log-clip>.log{opacity:1;transform:none}
 .sec-h{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fg2);padding:0 2px}
 .sec-h .i{width:18px;height:18px}
 .count{font-size:12px;letter-spacing:0;background:var(--tint2);color:var(--fg);border-radius:999px;padding:0 8px;line-height:20px}
@@ -370,7 +375,7 @@ const findEx = (w, id) => allEx(w).find((e) => e.id === id);
 const techOf = (d, id) => (id ? d.techniques.find((t) => t.id === id) || null : null);
 const shouldUp = (e) => e.min !== e.max && e.last.reps.length >= e.sets && e.last.reps.every((r) => r >= e.max);
 const half = (v) => Math.round(v * 2) / 2;
-const notation = (e, t) => `${t ? `[${upSym(t.sym)}] ` : ''}${e.sets}x${e.min === e.max ? e.min : `${e.min}-${e.max}`} → ${e.name || 'Exercício'}${e.last.w != null ? ` (${fmtNum(e.last.w)}kg)` : ''}${e.last.reps.length ? `\n(${e.last.reps.join('x')})` : ''}`;
+const notation = (e, t) => `${t ? `[${plainSym(t.sym)}] ` : ''}${e.sets}x${e.min === e.max ? e.min : `${e.min}-${e.max}`} → ${e.name || 'Exercício'}${e.last.w != null ? ` (${fmtNum(e.last.w)}kg)` : ''}${e.last.reps.length ? `\n(${e.last.reps.join('x')})` : ''}`;
 const cardStyle = (k) => `--cbg:var(--c-${k});--cborder:${k === 'default' ? 'var(--line)' : 'transparent'}`;
 const tap = (fn) => ({ role: 'button', tabindex: 0, onClick: (e) => { e.stopPropagation(); fn(); }, onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } } });
 
@@ -436,9 +441,9 @@ function seed() {
     v: 1,
     settings: { theme: 'system', rest: 90, autoRest: false, sound: true, vibrate: true },
     techniques: [
-      { id: 'feeder', sym: '𝐅', name: 'Feeder', desc: '1 série antes das válidas, com 50% da carga de trabalho e 6 reps.', pct: 50, reps: 6 },
-      { id: 'drop', sym: '𝐃', name: 'Drop-set', desc: 'Na última série, ao chegar na falha, tire cerca de 25% da carga e continue sem descanso.', pct: null, reps: null },
-      { id: 'rp', sym: '𝐑𝐏', name: 'Rest-pause', desc: 'Ao chegar na falha, descanse 15 s e faça mais reps com a mesma carga.', pct: null, reps: null },
+      { id: 'feeder', sym: 'f', name: 'Feeder', desc: '1 série antes das válidas, com 50% da carga de trabalho e 6 reps.', pct: 50, reps: 6 },
+      { id: 'drop', sym: 'd', name: 'Drop-set', desc: 'Na última série, ao chegar na falha, tire cerca de 25% da carga e continue sem descanso.', pct: null, reps: null },
+      { id: 'rp', sym: 'rp', name: 'Rest-pause', desc: 'Ao chegar na falha, descanse 15 s e faça mais reps com a mesma carga.', pct: null, reps: null },
     ],
     workouts: [w],
     sel: w.id,
@@ -527,8 +532,9 @@ const HOST_THEME = document.documentElement.getAttribute('data-theme');
 let latest = null;
 
 /* ================= peças pequenas ================= */
-const upSym = (s) => Array.from(s || '').map((ch) => { const cp = ch.codePointAt(0); return cp >= 0x1D41A && cp <= 0x1D433 ? String.fromCodePoint(cp - 26) : ch.toUpperCase(); }).join('');
-function Tq({ t, xs }) { return t ? html`<span class=${'tq' + (xs ? ' tq-xs' : '')} title=${t.name}>${upSym(t.sym)}</span>` : null; }
+// símbolos em negrito matemático (𝐟, 𝐅) viram letras comuns, para usar a fonte arredondada
+const plainSym = (s) => Array.from(s || '').map((ch) => { const cp = ch.codePointAt(0); if (cp >= 0x1D41A && cp <= 0x1D433) return String.fromCharCode(97 + cp - 0x1D41A); if (cp >= 0x1D400 && cp <= 0x1D419) return String.fromCharCode(97 + cp - 0x1D400); return ch; }).join('');
+function Tq({ t, xs }) { return t ? html`<span class=${'tq' + (xs ? ' tq-xs' : '')} title=${t.name}>${plainSym(t.sym)}</span>` : null; }
 
 function Stepper({ id, value, step = 1, min = 0, max = 999, unit, decimals, onChange, label }) {
   const [txt, setTxt] = useState(null);
@@ -633,8 +639,8 @@ function WorkoutCard({ w }) {
     <div class="card-body" ...${tap(open)}>
       <h2 class="card-title">${w.title || 'Treino sem nome'}</h2>
       ${allEx(w).length > 0 && html`<div class="pv-grid">
-        ${w.warmup.length > 0 && html`<span class="pv-label">Aquecimento</span>${w.warmup.map((e) => html`<${PvRow} key=${e.id} e=${e} t=${techOf(data, e.tech)} />`)}`}
-        ${w.main.length > 0 && html`<span class="pv-label">Exercícios</span>${w.main.map((e) => html`<${PvRow} key=${e.id} e=${e} t=${techOf(data, e.tech)} />`)}`}
+        ${w.warmup.length > 0 && html`<span class="pv-label">${I.flame()}Aquecimento</span>${w.warmup.map((e) => html`<${PvRow} key=${e.id} e=${e} t=${techOf(data, e.tech)} />`)}`}
+        ${w.main.length > 0 && html`<span class="pv-label">${I.dumbbell()}Exercícios</span>${w.main.map((e) => html`<${PvRow} key=${e.id} e=${e} t=${techOf(data, e.tech)} />`)}`}
       </div>`}
       ${w.cardio.length > 0 && html`<div class="pv-cardio">${I.pulse()}<span><b class="num">${w.cardio.map((k) => k.min + ' min').join(' + ')}</b> · ${w.cardio.map((k) => k.desc).join(', ')}</span></div>`}
       ${!allEx(w).length && html`<p class="mut">Sem exercícios ainda. Abra para montar.</p>`}
@@ -670,7 +676,7 @@ function Home() {
   const w = data.workouts.find((x) => x.id === data.sel) || data.workouts[0];
   return html`<div class="screen"><div class="wrap">
     <header class="home-top">
-      <div class="brand">Ficha</div>
+      <button type="button" class="brand" aria-label="Editar nome da ficha" onClick=${() => c.openSheet({ type: 'name' })}><span>${data.name || 'Ficha'}</span><span class="brand-ed">${I.edit()}</span></button>
       <div class="home-icons">
         <button class="ib" aria-label="Histórico" onClick=${() => c.go({ name: 'history' })}>${I.history()}</button>
         <button class="ib" aria-label="Ajustes" onClick=${() => c.go({ name: 'settings' })}>${I.sliders()}</button>
@@ -759,8 +765,8 @@ function Legend() {
   const [open, setOpen] = useState(false);
   const t0 = c.data.techniques[0];
   return html`<section class="legend">
-    <button type="button" class="legend-t" aria-expanded=${open} onClick=${() => setOpen(!open)}>${I.info()}<span>Legenda</span>${open ? I.upc() : I.down()}</button>
-    ${open && html`<div class="legend-b">
+    <button type="button" class="legend-t" aria-expanded=${open} onClick=${() => setOpen(!open)}>${I.info()}<span>Legenda</span><span class=${'chev' + (open ? ' up' : '')}>${I.down()}</span></button>
+    <div class=${'log-wrap' + (open ? ' open' : '')} inert=${!open}><div class="log-clip"><div class="legend-b">
       <dl class="key">
         ${t0 && html`<div><dt><${Tq} t=${t0} /></dt><dd>Técnica avançada do exercício</dd></div>`}
         <div><dt><span class="pill num">3×10–12</span></dt><dd>3 séries de 10 a 12 repetições</dd></div>
@@ -772,7 +778,7 @@ function Legend() {
       <h3 class="eyebrow legend-tq">Técnicas</h3>
       <ul class="tech-list">${c.data.techniques.map((t) => html`<li key=${t.id}><${Tq} t=${t} /><div><b>${t.name}</b><div class="mut">${t.desc}</div></div></li>`)}</ul>
       <div><button class="link" onClick=${() => c.go({ name: 'settings' })}>${I.edit()} Editar técnicas</button></div>
-    </div>`}
+    </div></div></div>
   </section>`;
 }
 
@@ -804,6 +810,7 @@ function WorkoutScreen({ id, startEdit }) {
       <${SessionChip} w=${w} />
       <button class="ib" aria-label="Cor do card" onClick=${() => c.openSheet({ type: 'color', target: 'workout', id })}>${I.palette()}</button>
       <button class=${'ib' + (edit ? ' on' : '')} aria-label=${edit ? 'Concluir edição' : 'Editar treino'} onClick=${() => { setEdit(!edit); setOpen(null); }}>${edit ? I.check() : I.edit()}</button>
+      <button class="ib" aria-label="Excluir treino" onClick=${() => c.openSheet({ type: 'confirm', title: 'Excluir este treino?', text: `"${w.title || 'Treino sem nome'}" e todos os exercícios dele serão apagados. O histórico de treinos já concluídos continua salvo.`, label: 'Excluir treino', onOk: () => c.deleteWorkout(id) })}>${I.trash()}</button>
     <//>
     <header class=${'w-head' + (edit ? ' tap' : '')} ...${edit ? tap(() => c.openSheet({ type: 'meta', id })) : {}}>
       <span class="eyebrow">${w.day || 'Sem dia definido'}</span>
@@ -814,7 +821,6 @@ function WorkoutScreen({ id, startEdit }) {
     ${section('main', 'Exercícios')}
     <${CardioBox} w=${w} edit=${edit} />
     ${!edit && html`<${Legend} />`}
-    ${edit && html`<button type="button" class="btn ghost danger del-w" onClick=${() => c.openSheet({ type: 'confirm', title: 'Excluir este treino?', text: `"${w.title || 'Treino sem nome'}" e todos os exercícios dele serão apagados. O histórico de treinos já concluídos continua salvo.`, label: 'Excluir treino', onOk: () => c.deleteWorkout(id) })}>${I.trash()}Excluir treino</button>`}
   </div></div>`;
 }
 
@@ -830,6 +836,16 @@ function TimerWatcher() {
     } else if (now - t.endAt > 5 * 60 * 1000) c.stopTimer();
   }, [now, t]);
   return null;
+}
+
+function NameSheet() {
+  const c = useCtx();
+  const [v, setV] = useState(c.data.name || '');
+  const save = () => { c.up((d) => { d.name = v.trim(); }); c.closeSheet(); };
+  return html`<${Sheet} title="Nome da ficha">
+    <div class="field"><label for="nm-ficha">Nome</label><input id="nm-ficha" class="txt" autocomplete="off" maxlength="40" placeholder="Ex.: Ficha do João" value=${v} onInput=${(ev) => setV(ev.target.value)} onKeyDown=${(ev) => { if (ev.key === 'Enter') save(); }} /><span class="mut sm">Aparece no topo da tela inicial. Em branco, fica "Ficha".</span></div>
+    <div class="sheet-actions"><button type="button" class="btn ink grow" onClick=${save}>Salvar</button></div>
+  <//>`;
 }
 
 function SessionChip({ w }) {
@@ -1163,7 +1179,7 @@ function TechSheet({ tid }) {
   };
   return html`<${Sheet} title=${orig ? 'Editar técnica' : 'Nova técnica'}>
     <div class="row">
-      <div class="field" style="width:6.5em"><label for="tq-sym">Símbolo</label><input id="tq-sym" class="txt" maxlength="4" autocomplete="off" placeholder="𝐅" value=${f.sym} onInput=${(ev) => { S('sym', ev.target.value); setErr(''); }} /></div>
+      <div class="field" style="width:6.5em"><label for="tq-sym">Símbolo</label><input id="tq-sym" class="txt" maxlength="4" autocomplete="off" placeholder="f" value=${f.sym} onInput=${(ev) => { S('sym', ev.target.value); setErr(''); }} /></div>
       <div class="field grow"><label for="tq-name">Nome</label><input id="tq-name" class="txt" autocomplete="off" placeholder="Ex.: Feeder" value=${f.name} onInput=${(ev) => { S('name', ev.target.value); setErr(''); }} /></div>
     </div>
     ${err && html`<span class="err">${err}</span>`}
@@ -1197,7 +1213,7 @@ function ConfirmSheet({ title, text, label, onOk }) {
 }
 
 function SheetHost({ s }) {
-  const map = { session: SessionSheet, exercise: ExerciseSheet, cardio: CardioSheet, meta: MetaSheet, color: ColorSheet, history: HistorySheet, meal: MealSheet, tech: TechSheet, confirm: ConfirmSheet };
+  const map = { name: NameSheet, session: SessionSheet, exercise: ExerciseSheet, cardio: CardioSheet, meta: MetaSheet, color: ColorSheet, history: HistorySheet, meal: MealSheet, tech: TechSheet, confirm: ConfirmSheet };
   const C = map[s.type];
   return C ? html`<${C} key=${s.n} ...${s} />` : null;
 }
