@@ -102,7 +102,8 @@ ul{list-style:none}
 .pv-s{font-weight:700;font-size:14.5px;white-space:nowrap}
 .pv-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pv-w{color:var(--fg2);font-weight:700;font-size:14px}
-.pv-cardio{display:flex;align-items:center;gap:8px;font-size:14px;padding-top:10px;border-top:1px dashed var(--hair)}
+.pv-cardio{display:flex;align-items:center;gap:8px;font-size:14px}
+.pv-grid+.pv-cardio{padding-top:10px;border-top:1px dashed var(--hair)}
 .pv-cardio .i{width:18px;height:18px;color:var(--fg2)}
 .tap-card{cursor:pointer}
 .mp-list{display:flex;flex-direction:column;gap:10px}
@@ -415,6 +416,59 @@ const I = {
 
 /* ================= dados de exemplo ================= */
 function mkEx(name, tech, sets, min, max, w, reps, rest) { return { id: uid(), name, tech, sets, min, max, last: { w, reps }, rest }; }
+const CARDIO_DESC = 'Média/Alta intensidade · caminhada, escada, bike ou elíptico';
+// Treinos da semana (terça a domingo), transcritos da ficha do coach.
+function weekWorkouts() {
+  const W = (day, title, color, warmup, main, cardio = []) => ({ id: uid(), day, title, color, warmup, main, cardio });
+  const C = (min, desc) => [{ id: uid(), min, desc }];
+  return [
+    W('Terça', 'Lower A / Ênfase Quadríceps', 'storm',
+      [mkEx('Agachamento Hack', null, 2, 12, 12, 0, [12, 12], 15)],
+      [
+        mkEx('Agachamento Hack', 'feeder', 3, 6, 8, 20, [6, 6, 6], 120),
+        mkEx('Leg Press 45°', 'feeder', 3, 8, 10, 60, [8, 8, 8], 90),
+        mkEx('Cadeira Extensora', 'feeder', 2, 10, 12, 43, [10, 9], 60),
+        mkEx('Mesa Flexora', 'feeder', 3, 8, 10, 45, [10, 8, 8], 90),
+        mkEx('Cadeira Abdutora', 'feeder', 2, 12, 15, 43, [15, 15], 60),
+        mkEx('Panturrilha em Pé', 'feeder', 3, 8, 10, 60, [10, 10, 10], 60),
+      ]),
+    W('Quarta', 'Cardio', 'mint', [], [], C(45, CARDIO_DESC)),
+    W('Quinta', 'Costas + Bíceps + Deltoide Posterior', 'fog',
+      [mkEx('Puxada Alta Pegada Neutra', null, 2, 20, 20, null, [], 15)],
+      [
+        mkEx('Puxada Alta Pegada Neutra', 'feeder', 3, 6, 8, 63, [8, 8, 8], 120),
+        mkEx('Remada Baixa', 'feeder', 3, 8, 10, 58, [10, 10, 9], 90),
+        mkEx('Remada Unilateral Máquina', 'feeder', 2, 8, 10, 30, [10, 9], 90),
+        mkEx('Pulldown na Polia', 'feeder', 2, 10, 12, 50, [12, 12], 60),
+        mkEx('Crucifixo Inverso', 'feeder', 3, 12, 15, 40, [12, 12, 12], 60),
+        mkEx('Rosca Scott', 'feeder', 3, 8, 10, 32, [10, 10, 9], 60),
+        mkEx('Rosca Martelo', 'feeder', 2, 10, 12, 12.5, [10, 10], 60),
+      ]),
+    W('Sexta', 'Peito + Ombros + Tríceps + Abdômen', 'peach',
+      [mkEx('Supino Inclinado com Halteres', null, 2, 20, 20, null, [], 15)],
+      [
+        mkEx('Supino Inclinado com Halteres', 'feeder', 3, 6, 8, 27.5, [8, 8, 8], 120),
+        mkEx('Desenvolvimento Máquina', 'feeder', 3, 6, 8, 30, [8, 8, 5], 120),
+        mkEx('Crucifixo Máquina', 'feeder', 2, 10, 12, 45, [12, 10], 60),
+        mkEx('Elevação Lateral na Polia', 'feeder', 3, 10, 12, 15, [12, 12, 12], 60),
+        mkEx('Tríceps Francês na Polia', 'feeder', 3, 8, 10, 45, [10, 8, 6], 60),
+        mkEx('Tríceps Corda', 'feeder', 2, 10, 12, 40, [8, 10], 60),
+        mkEx('Abdominal Máquina', 'feeder', 3, 10, 12, null, [], 60),
+      ]),
+    W('Sábado', 'Lower B / Posterior', 'blossom',
+      [mkEx('Stiff', null, 2, 20, 20, null, [], 15)],
+      [
+        mkEx('Stiff / Terra Romeno', 'feeder', 3, 6, 8, 15, [8, 8, 8], 120),
+        mkEx('Mesa Flexora', 'feeder', 3, 8, 10, 60, [10, 10, 10], 90),
+        mkEx('Leg Press 45°', 'feeder', 3, 8, 10, 60, [10, 10, 10], 90),
+        mkEx('Afundo Búlgaro', 'feeder', 2, 8, 10, 7, [6, 6], 90),
+        mkEx('Cadeira Extensora', 'feeder', 2, 10, 12, 65, [12, 10], 60),
+        mkEx('Panturrilha Sentado', 'feeder', 3, 10, 12, null, [], 60),
+      ]),
+    W('Domingo', 'Cardio', 'mint', [], [], C(45, CARDIO_DESC)),
+  ];
+}
+const SEED_REV = 2;
 function seed() {
   const warmup = [mkEx('Supino Inclinado Máquina', null, 2, 20, 20, 5, [20, 20], 15)];
   const main = [
@@ -447,7 +501,8 @@ function seed() {
       { id: 'drop', sym: 'd', name: 'Drop-set', desc: 'Na última série, ao chegar na falha, tire cerca de 25% da carga e continue sem descanso.', pct: null, reps: null },
       { id: 'rp', sym: 'rp', name: 'Rest-pause', desc: 'Ao chegar na falha, descanse 15 s e faça mais reps com a mesma carga.', pct: null, reps: null },
     ],
-    workouts: [w],
+    workouts: [w, ...weekWorkouts()],
+    seedRev: SEED_REV,
     sel: w.id,
     diet: {
       color: 'sage', sample: true, notes: 'Água: 3 a 4 litros por dia.',
@@ -464,8 +519,15 @@ function seed() {
 }
 function loadData(hot) {
   if (hot && hot.v === 1) return hot;
-  try { const s = localStorage.getItem(KEY); if (s) { const d = JSON.parse(s); if (d && d.v === 1) return d; } } catch (e) {}
-  const d = seed();
+  let d = null;
+  try { const s = localStorage.getItem(KEY); if (s) { const x = JSON.parse(s); if (x && x.v === 1) d = x; } } catch (e) {}
+  if (!d) d = seed();
+  // dados salvos antes dos treinos da semana: acrescenta os dias que faltam, sem mexer no resto
+  if ((d.seedRev || 1) < SEED_REV) {
+    const have = new Set(d.workouts.map((w) => norm(w.day).slice(0, 3)));
+    weekWorkouts().forEach((w) => { if (!have.has(norm(w.day).slice(0, 3))) d.workouts.push(w); });
+    d.seedRev = SEED_REV;
+  }
   const today = norm(DOWS[new Date().getDay()]);
   const m = d.workouts.find((w) => norm(w.day).startsWith(today));
   if (m) d.sel = m.id;
@@ -645,7 +707,7 @@ function WorkoutCard({ w }) {
         ${w.main.length > 0 && html`<span class="pv-label">${I.dumbbell()}Exercícios</span>${w.main.map((e) => html`<${PvRow} key=${e.id} e=${e} t=${techOf(data, e.tech)} />`)}`}
       </div>`}
       ${w.cardio.length > 0 && html`<div class="pv-cardio">${I.pulse()}<span><b class="num">${w.cardio.map((k) => k.min + ' min').join(' + ')}</b> · ${w.cardio.map((k) => k.desc).join(', ')}</span></div>`}
-      ${!allEx(w).length && html`<p class="mut">Sem exercícios ainda. Abra para montar.</p>`}
+      ${!allEx(w).length && !w.cardio.length && html`<p class="mut">Sem exercícios ainda. Abra para montar.</p>`}
     </div>
   </article>`;
 }
