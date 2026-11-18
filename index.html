@@ -146,6 +146,8 @@ ul{list-style:none}
 /* técnica avançada */
 .tq{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:7px;background:var(--ink);color:var(--on-ink);font-family:var(--font-sym);font-weight:900;font-size:15px;line-height:1;flex:none;font-stretch:100%}
 .tq-xs{min-width:19px;height:19px;font-size:12.5px;border-radius:6px;padding:0 4px}
+.tq{text-box:trim-both cap alphabetic}
+@supports not (text-box: trim-both cap alphabetic){.tq{padding-top:2px}}
 
 /* ---------- tela do treino ---------- */
 .w-head{display:flex;flex-direction:column;gap:4px;padding:2px 0;border-radius:14px}
