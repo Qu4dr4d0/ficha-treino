@@ -162,7 +162,10 @@ ul{list-style:none}
 .ex.editing .ex-head{cursor:pointer}
 .ex-name{display:flex;align-items:center;gap:8px;font-weight:600;font-size:16px;line-height:1.25;min-width:0}
 .ex-name .nm{min-width:0;overflow-wrap:anywhere}
-.ex-meta{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap;font-size:15.5px}
+.ex-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:14.5px;margin-top:2px}
+.pill{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 8px;border-radius:999px;background:var(--tint2);line-height:1}
+.pill.prog{background:none;padding:0 2px}
+.pill .up{width:18px;height:18px;margin-right:-5px}
 .scheme,.load{font-weight:700}
 .scheme,.load,.reps{white-space:nowrap}
 .load{display:inline-flex;align-items:center;gap:5px}
@@ -179,7 +182,7 @@ ul{list-style:none}
 .reorder{display:flex;flex-direction:column;padding:6px 6px 6px 0}
 .reorder .ib{width:38px;height:30px;border-radius:9px}
 .reorder .ib .i{width:20px;height:20px}
-.log{padding:2px 12px 14px;display:flex;flex-direction:column;gap:8px}
+.log{padding:12px 12px 14px;margin-top:2px;border-top:1px solid var(--hair);display:flex;flex-direction:column;gap:8px}
 .tq-note{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--tint);font-size:14px;line-height:1.35}
 .tq-note b{font-weight:700}
 .tq-note .calc{font-family:var(--font-num);font-stretch:80%;font-weight:700;font-variant-numeric:tabular-nums}
@@ -565,11 +568,15 @@ function RestChip({ k, label, secs, kind = 'rest' }) {
 
 function ExMeta({ e, live, entry }) {
   const done = live && entry ? entry.done.filter(Boolean).length : 0;
+  const today = !!(live && entry && live.ex[e.id]);
+  const w = today ? entry.w : e.last.w;
+  const reps = today ? entry.reps : e.last.reps;
+  const up = shouldUp(e) && (w == null || e.last.w == null || w <= e.last.w);
   return html`<span class="ex-meta">
-    <span class="scheme num">${scheme(e)}</span>
-    <span class="load num">${kg(e.last.w)}${shouldUp(e) && html`<span class="up" title="Hora de subir a carga">${I.arrowUp()}</span>`}</span>
-    <span class="reps num">${e.last.reps.length ? e.last.reps.join(' · ') : 'sem registro'}</span>
-    ${done > 0 && html`<span class="prog">${done === e.sets ? I.check() : null}${done}/${e.sets}</span>`}
+    <span class="pill scheme num">${scheme(e)}</span>
+    <span class="pill load num">${kg(w)}${up && html`<span class="up" title="Hora de subir a carga">${I.arrowUp()}</span>`}</span>
+    <span class="pill reps num">${reps.length ? reps.join(' · ') : 'sem registro'}</span>
+    ${done > 0 && html`<span class="pill prog">${done === e.sets ? I.check() : null}${done}/${e.sets}</span>`}
   </span>`;
 }
 
