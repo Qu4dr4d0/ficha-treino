@@ -562,8 +562,8 @@ function RestChip({ k, label, secs, kind = 'rest' }) {
     txt = over ? '+' + fmtTime(Math.floor(-ms / 1000)) : fmtTime(Math.ceil(ms / 1000));
   }
   return html`<button type="button" class=${'rest' + (on ? ' on' : '') + (over ? ' over' : '')}
-    aria-label=${on ? 'Reiniciar contagem' : `Iniciar ${kind === 'cardio' ? 'cardio' : 'descanso'} de ${fmtTime(secs)}`}
-    onClick=${() => c.startTimer({ key: k, label, secs, kind })}>${kind === 'cardio' && !on ? I.play() : I.timer()}<span>${txt}</span></button>`;
+    aria-label=${over ? 'Zerar cronômetro' : on ? 'Reiniciar contagem' : `Iniciar ${kind === 'cardio' ? 'cardio' : 'descanso'} de ${fmtTime(secs)}`}
+    onClick=${() => (over ? c.stopTimer() : c.startTimer({ key: k, label, secs, kind }))}>${kind === 'cardio' && !on ? I.play() : I.timer()}<span>${txt}</span></button>`;
 }
 
 function ExMeta({ e, live, entry }) {
