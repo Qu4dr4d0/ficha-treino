@@ -100,7 +100,8 @@ ul{list-style:none}
 .pv-w{color:var(--fg2);font-weight:700;font-size:14px}
 .pv-cardio{display:flex;align-items:center;gap:8px;font-size:14px;padding-top:10px;border-top:1px dashed var(--hair)}
 .pv-cardio .i{width:18px;height:18px;color:var(--fg2)}
-.card-foot{display:flex;justify-content:flex-end}
+.tap-card{cursor:pointer}
+.del-w{align-self:center;margin-top:4px}
 .mp-list{display:flex;flex-direction:column;gap:10px}
 .mp{display:grid;grid-template-columns:3em minmax(0,1fr);column-gap:10px;row-gap:1px;align-items:baseline}
 .mp-t{font-weight:700;color:var(--fg2);font-size:14.5px}
@@ -369,7 +370,7 @@ const shouldUp = (e) => e.min !== e.max && e.last.reps.length >= e.sets && e.las
 const half = (v) => Math.round(v * 2) / 2;
 const notation = (e, t) => `${t ? `[${t.sym}] ` : ''}${e.sets}x${e.min === e.max ? e.min : `${e.min}-${e.max}`} → ${e.name || 'Exercício'}${e.last.w != null ? ` (${fmtNum(e.last.w)}kg)` : ''}${e.last.reps.length ? `\n(${e.last.reps.join('x')})` : ''}`;
 const cardStyle = (k) => `--cbg:var(--c-${k});--cborder:${k === 'default' ? 'var(--line)' : 'transparent'}`;
-const tap = (fn) => ({ role: 'button', tabindex: 0, onClick: fn, onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } } });
+const tap = (fn) => ({ role: 'button', tabindex: 0, onClick: (e) => { e.stopPropagation(); fn(); }, onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } } });
 
 const COLORS = ['default', 'coral', 'peach', 'sand', 'mint', 'sage', 'fog', 'storm', 'dusk', 'blossom', 'clay', 'chalk'];
 const COLOR_NAMES = { default: 'Sem cor', coral: 'Coral', peach: 'Pêssego', sand: 'Areia', mint: 'Menta', sage: 'Sálvia', fog: 'Névoa', storm: 'Tempestade', dusk: 'Crepúsculo', blossom: 'Flor', clay: 'Argila', chalk: 'Giz' };
@@ -606,8 +607,8 @@ function WorkoutCard({ w }) {
     c.openSheet({ type: 'meta', id, isNew: true });
   };
   const tabs = html`<div class="wtabs" role="tablist" aria-label="Treinos">
-    ${data.workouts.map((x) => html`<button role="tab" aria-selected=${!!w && x.id === w.id} class=${'chip-sm' + (w && x.id === w.id ? ' sel' : '')} onClick=${() => c.up((d) => { d.sel = x.id; })}>${x.day || x.title || 'Treino'}</button>`)}
-    <button class="chip-sm" onClick=${newW}>${I.plus()} Novo</button>
+    ${data.workouts.map((x) => html`<button role="tab" aria-selected=${!!w && x.id === w.id} class=${'chip-sm' + (w && x.id === w.id ? ' sel' : '')} onClick=${(ev) => { ev.stopPropagation(); c.up((d) => { d.sel = x.id; }); }}>${x.day || x.title || 'Treino'}</button>`)}
+    <button class="chip-sm" onClick=${(ev) => { ev.stopPropagation(); newW(); }}>${I.plus()} Novo</button>
   </div>`;
   if (!w) {
     return html`<article class="card" style=${cardStyle('default')}>
@@ -618,19 +619,16 @@ function WorkoutCard({ w }) {
   }
   const live = liveFor(data, w);
   const open = () => c.go({ name: 'workout', id: w.id });
-  return html`<article class="card" style=${cardStyle(w.color)}>
+  return html`<article class="card tap-card" style=${cardStyle(w.color)} onClick=${open}>
     <div class="card-head">
       <span class="eyebrow">Treino</span>
       ${live && html`<span class="live-tag">Em andamento</span>`}
       <span class="grow"></span>
-      <button class="ib" aria-label="Cor do card de treino" onClick=${() => c.openSheet({ type: 'color', target: 'workout', id: w.id })}>${I.palette()}</button>
+      <button class="ib" aria-label="Cor do card de treino" onClick=${(ev) => { ev.stopPropagation(); c.openSheet({ type: 'color', target: 'workout', id: w.id }); }}>${I.palette()}</button>
     </div>
     ${tabs}
     <div class="card-body" ...${tap(open)}>
-      <div>
-        <h2 class="card-title">${w.title || 'Treino sem nome'}</h2>
-        <p class="card-sub">${[w.day, `${w.main.length} exercícios`].filter(Boolean).join(' · ')}</p>
-      </div>
+      <h2 class="card-title">${w.title || 'Treino sem nome'}</h2>
       ${allEx(w).length > 0 && html`<div class="pv-grid">
         ${w.warmup.length > 0 && html`<span class="pv-label">Aquecimento</span>${w.warmup.map((e) => html`<${PvRow} key=${e.id} e=${e} t=${techOf(data, e.tech)} />`)}`}
         ${w.main.length > 0 && html`<span class="pv-label">Exercícios</span>${w.main.map((e) => html`<${PvRow} key=${e.id} e=${e} t=${techOf(data, e.tech)} />`)}`}
@@ -638,19 +636,18 @@ function WorkoutCard({ w }) {
       ${w.cardio.length > 0 && html`<div class="pv-cardio">${I.pulse()}<span><b class="num">${w.cardio.map((k) => k.min + ' min').join(' + ')}</b> · ${w.cardio.map((k) => k.desc).join(', ')}</span></div>`}
       ${!allEx(w).length && html`<p class="mut">Sem exercícios ainda. Abra para montar.</p>`}
     </div>
-    <div class="card-foot"><button class="btn ink" onClick=${open}>${live ? 'Continuar treino' : 'Abrir treino'} ${I.right()}</button></div>
   </article>`;
 }
 
 function DietCard() {
   const c = useCtx(); const d = c.data.diet;
   const open = () => c.go({ name: 'diet' });
-  return html`<article class="card" style=${cardStyle(d.color)}>
+  return html`<article class="card tap-card" style=${cardStyle(d.color)} onClick=${open}>
     <div class="card-head">
       <span class="eyebrow">Dieta</span>
       ${d.sample && html`<span class="tag">Exemplo</span>`}
       <span class="grow"></span>
-      <button class="ib" aria-label="Cor do card de dieta" onClick=${() => c.openSheet({ type: 'color', target: 'diet' })}>${I.palette()}</button>
+      <button class="ib" aria-label="Cor do card de dieta" onClick=${(ev) => { ev.stopPropagation(); c.openSheet({ type: 'color', target: 'diet' }); }}>${I.palette()}</button>
     </div>
     <div class="card-body" ...${tap(open)}>
       <div class="mp-list">
@@ -662,7 +659,6 @@ function DietCard() {
       </div>
       ${!d.meals.length && html`<p class="mut">Nenhuma refeição ainda.</p>`}
     </div>
-    <div class="card-foot"><button class="btn ink" onClick=${open}>Abrir dieta ${I.right()}</button></div>
   </article>`;
 }
 
@@ -815,6 +811,7 @@ function WorkoutScreen({ id, startEdit }) {
     ${section('main', 'Exercícios')}
     <${CardioBox} w=${w} edit=${edit} />
     ${!edit && html`<${Legend} />`}
+    ${edit && html`<button type="button" class="btn ghost danger del-w" onClick=${() => c.openSheet({ type: 'confirm', title: 'Excluir este treino?', text: `"${w.title || 'Treino sem nome'}" e todos os exercícios dele serão apagados. O histórico de treinos já concluídos continua salvo.`, label: 'Excluir treino', onOk: () => c.deleteWorkout(id) })}>${I.trash()}Excluir treino</button>`}
   </div></div>`;
 }
 
@@ -1011,8 +1008,7 @@ function MetaSheet({ id, isNew }) {
   const save = () => { c.up((d) => { const W = d.workouts.find((x) => x.id === id); W.day = day.trim(); W.title = title.trim() || 'Treino sem nome'; }); c.closeSheet(); };
   const remove = () => {
     if (!del) { setDel(true); return; }
-    c.up((d) => { d.workouts = d.workouts.filter((x) => x.id !== id); if (d.live && d.live.wid === id) d.live = null; if (d.sel === id) d.sel = d.workouts[0] ? d.workouts[0].id : null; });
-    c.closeSheet(); c.home(); c.toast('Treino excluído');
+    c.closeSheet(); c.deleteWorkout(id);
   };
   return html`<${Sheet} title=${isNew ? 'Novo treino' : 'Dados do treino'}>
     <div class="field"><label for="mt-title">Nome do treino</label><input id="mt-title" class="txt" autocomplete="off" placeholder="Ex.: Upper A + Abdômen" value=${title} onInput=${(ev) => setTitle(ev.target.value)} /></div>
@@ -1022,7 +1018,7 @@ function MetaSheet({ id, isNew }) {
       <div class="chips day-chips">${DAYS.map((d) => html`<button type="button" class=${'chip' + (day === d ? ' sel' : '')} onClick=${() => setDay(d)}>${d}</button>`)}</div>
     </div>
     <div class="sheet-actions">
-      ${!isNew && html`<button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir treino'}</button>`}
+      <button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir treino'}</button>
       <button type="button" class="btn ink grow" onClick=${save}>Salvar</button>
     </div>
   <//>`;
@@ -1370,8 +1366,12 @@ function App({ hot }) {
   };
   const askDiscard = () => openSheet({ type: 'confirm', title: 'Descartar treino de hoje?', text: 'As séries marcadas não serão salvas no histórico.', label: 'Descartar', onOk: () => { up((d) => { d.live = null; }); stopTimer(); } });
   const replace = (d) => { setData(d); setTimer(null); home(); };
+  const deleteWorkout = (id) => {
+    up((d) => { d.workouts = d.workouts.filter((x) => x.id !== id); if (d.live && d.live.wid === id) d.live = null; if (d.sel === id) d.sel = d.workouts[0] ? d.workouts[0].id : null; });
+    home(); toast('Treino excluído');
+  };
 
-  const ctx = { data, up, route, go, back, home, openSheet, closeSheet, timer, setTimer, startTimer, stopTimer, toast, finish, askDiscard, replace };
+  const ctx = { data, up, route, go, back, home, openSheet, closeSheet, timer, setTimer, startTimer, stopTimer, toast, finish, askDiscard, replace, deleteWorkout };
   let screen;
   if (route.name === 'workout') screen = html`<${WorkoutScreen} key=${route.id} id=${route.id} startEdit=${route.edit} />`;
   else if (route.name === 'diet') screen = html`<${DietScreen} />`;
