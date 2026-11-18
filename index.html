@@ -61,7 +61,7 @@ ul{list-style:none}
 .tag{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--tint2);color:var(--fg2);flex:none}
 
 /* ---------- estrutura ---------- */
-.screen{padding-bottom:210px}
+.screen{padding-bottom:56px}
 .wrap{max-width:480px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
 .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:8;display:flex;align-items:center;gap:2px;height:56px;margin:0 -10px -8px;background:var(--screen-bg);transition:background-color .25s}
 .tb-title{flex:1;min-width:0;font-weight:600;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -179,12 +179,12 @@ ul{list-style:none}
 .reorder{display:flex;flex-direction:column;padding:6px 6px 6px 0}
 .reorder .ib{width:38px;height:30px;border-radius:9px}
 .reorder .ib .i{width:20px;height:20px}
-.log{padding:0 12px 12px;display:flex;flex-direction:column;gap:8px}
+.log{padding:2px 12px 14px;display:flex;flex-direction:column;gap:8px}
 .tq-note{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--tint);font-size:14px;line-height:1.35}
 .tq-note b{font-weight:700}
 .tq-note .calc{font-family:var(--font-num);font-stretch:80%;font-weight:700;font-variant-numeric:tabular-nums}
 .log-row{display:grid;grid-template-columns:54px auto minmax(0,1fr) 40px;align-items:center;gap:10px}
-.log-row.load-row{grid-template-columns:54px auto minmax(0,1fr)}
+.log-row.load-row{grid-template-columns:54px auto minmax(0,1fr);padding-bottom:10px;margin-bottom:2px;border-bottom:1px solid var(--hair)}
 .lbl{font-size:13px;font-weight:600;color:var(--fg2);white-space:nowrap}
 .set.is-done .lbl{color:var(--good)}
 .hint{font-size:12.5px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -208,27 +208,12 @@ ul{list-style:none}
 .tech-list{display:flex;flex-direction:column;gap:10px}
 .tech-list li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;font-size:14px;line-height:1.35}
 
-/* ---------- dock: descanso e treino em andamento ---------- */
-.dock{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:0 max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
-.dock>*{pointer-events:auto;width:100%;max-width:456px}
-.timer{display:flex;align-items:center;gap:6px;background:var(--ink);color:var(--on-ink);border-radius:22px;padding:8px 8px 8px 10px;box-shadow:var(--shadow);animation:rise .22s cubic-bezier(.2,.8,.2,1)}
-.timer.over{background:var(--good);color:var(--on-good)}
-.ring{width:48px;height:48px;flex:none;transform:rotate(-90deg)}
-.ring circle{fill:none;stroke-width:4.5}
-.ring .trk{stroke:currentColor;opacity:.18}
-.ring .bar{stroke:var(--ring);stroke-linecap:round;transition:stroke-dashoffset .25s linear}
-.timer.over .ring .bar{stroke:currentColor}
-.t-main{flex:1;min-width:0;display:flex;flex-direction:column;padding-left:4px}
-.t-label{font-size:12px;opacity:.78;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.t-time{font-size:32px;font-weight:800;line-height:1.02;font-stretch:72%}
-.timer.soon .t-time{animation:pulse .5s ease-in-out infinite alternate}
-.t-btn{height:42px;min-width:44px;padding:0 8px;border-radius:13px;font-family:var(--font-num);font-weight:700;font-stretch:85%;font-size:14px;display:grid;place-items:center;background:color-mix(in srgb,currentColor 15%,transparent)}
-.t-btn .i{width:20px;height:20px}
-.sess-bar{display:flex;align-items:center;gap:8px;background:var(--sheet);color:var(--fg);border-radius:22px;padding:8px 8px 8px 16px;box-shadow:var(--shadow);border:1px solid var(--hair)}
-.sess-info{display:flex;flex-direction:column;flex:1;min-width:0}
-.sess-info .num{font-size:21px;font-weight:800;line-height:1.1}
-.sess-count{font-size:21px;font-weight:800;line-height:1.1;display:flex;flex-direction:column;align-items:flex-end;padding-right:4px}
-.sess-count small{font-size:11.5px;color:var(--fg2);font-weight:600;font-family:var(--font-ui)}
+/* ---------- cronômetro do treino (barra do topo) ---------- */
+.sess-chip{height:36px;padding:0 12px 0 10px;margin-right:2px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;background:var(--tint2);font-weight:600;font-size:14px;white-space:nowrap;flex:none}
+.sess-chip .num{font-size:16px;font-weight:800}
+.sess-chip .i{width:17px;height:17px}
+.sess-chip.on{background:var(--ink);color:var(--on-ink)}
+.stats.sess-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
 
 /* ---------- sheets ---------- */
 .scrim{position:fixed;inset:0;z-index:40;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;animation:fade .18s ease-out}
@@ -699,10 +684,6 @@ function LogPanel({ w, e, entry, tech }) {
     if (willDo && c.data.settings.autoRest && e.rest > 0) c.startTimer({ key: e.id, label: e.name, secs: e.rest });
   };
   return html`<div class="log">
-    ${tech && html`<div class="tq-note"><${Tq} t=${tech} /><div>
-      <b>${tech.name}</b>${tech.pct ? html` · <span class="calc">${fmtNum(half((entry.w * tech.pct) / 100))} kg × ${tech.reps}</span>` : ''}
-      <div class="mut sm">${tech.desc}</div>
-    </div></div>`}
     <div class="log-row load-row">
       <span class="lbl">Carga</span>
       <${Stepper} id=${'w-' + e.id} value=${entry.w} step=${1} unit="kg" decimals label="carga" onChange=${(v) => set((en) => { en.w = v; })} />
@@ -714,10 +695,6 @@ function LogPanel({ w, e, entry, tech }) {
       <span class="hint">${e.last.reps[i] != null ? `antes ${e.last.reps[i]}` : ''}</span>
       <button type="button" class=${'chk' + (entry.done[i] ? ' on' : '')} aria-pressed=${entry.done[i]} aria-label=${`Série ${i + 1} feita`} onClick=${() => toggle(i)}>${I.check()}</button>
     </div>`)}
-    <div class="log-foot">
-      ${shouldUp(e) ? html`<span class="prog-hint"><span class="up">${I.arrowUp()}</span>Topo da faixa batido: suba a carga</span>` : html`<span></span>`}
-      <button class="link" onClick=${() => c.openSheet({ type: 'history', wid: w.id, eid: e.id })}>${I.chart()} Histórico</button>
-    </div>
   </div>`;
 }
 
@@ -797,8 +774,6 @@ function WorkoutScreen({ id, startEdit }) {
     if (j < 0 || j >= arr.length) return;
     [arr[i], arr[j]] = [arr[j], arr[i]];
   });
-  const totalSets = allEx(w).reduce((a, e) => a + e.sets, 0);
-  const cardioMin = w.cardio.reduce((a, k) => a + k.min, 0);
   const section = (sec, label) => {
     const list = w[sec];
     if (!edit && !list.length) return null;
@@ -813,13 +788,13 @@ function WorkoutScreen({ id, startEdit }) {
   };
   return html`<div class="screen"><div class="wrap">
     <${TopBar}>
+      <${SessionChip} w=${w} />
       <button class="ib" aria-label="Cor do card" onClick=${() => c.openSheet({ type: 'color', target: 'workout', id })}>${I.palette()}</button>
       <button class=${'ib' + (edit ? ' on' : '')} aria-label=${edit ? 'Concluir edição' : 'Editar treino'} onClick=${() => { setEdit(!edit); setOpen(null); }}>${edit ? I.check() : I.edit()}</button>
     <//>
     <header class=${'w-head' + (edit ? ' tap' : '')} ...${edit ? tap(() => c.openSheet({ type: 'meta', id })) : {}}>
       <span class="eyebrow">${w.day || 'Sem dia definido'}</span>
       <h1 class="w-title">${w.title || 'Treino sem nome'}</h1>
-      <span class="w-sub">${w.main.length} exercícios · ${totalSets} séries${cardioMin ? ` · cardio ${cardioMin} min` : ''}</span>
     </header>
     ${edit && html`<p class="edit-hint">${I.edit()}<span>Toque em um item para editar. Use as setas para reordenar.</span></p>`}
     ${section('warmup', 'Aquecimento')}
@@ -829,59 +804,46 @@ function WorkoutScreen({ id, startEdit }) {
   </div></div>`;
 }
 
-/* ================= dock ================= */
-function TimerPill() {
+/* ================= cronômetros ================= */
+function TimerWatcher() {
   const c = useCtx(); const t = c.timer;
-  const now = useNow(!!t);
+  const now = useNow(!!t, 500);
   useEffect(() => {
-    if (t && !t.alerted && now >= t.endAt) {
+    if (!t) return;
+    if (!t.alerted && now >= t.endAt) {
       notifyDone(c.data.settings);
       c.setTimer((x) => (x && x.id === t.id ? { ...x, alerted: true } : x));
-    }
+    } else if (now - t.endAt > 5 * 60 * 1000) c.stopTimer();
   }, [now, t]);
-  if (!t) return null;
-  const ms = t.endAt - now;
-  const over = ms <= 0;
-  const rem = Math.ceil(ms / 1000);
-  const frac = clamp(ms / (t.total * 1000), 0, 1);
-  const C = 2 * Math.PI * 19;
-  const adj = (sec) => c.setTimer((x) => {
-    if (!x) return x;
-    const endAt = Math.max(Date.now() - 1, x.endAt + sec * 1000);
-    return { ...x, endAt, total: Math.max(1, x.total + sec), alerted: endAt <= Date.now() ? x.alerted : false };
-  });
-  const isCardio = t.kind === 'cardio';
-  return html`<div class=${'timer' + (over ? ' over' : '') + (!over && rem <= 5 ? ' soon' : '')} role="timer" aria-live="off">
-    <svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="trk" cx="24" cy="24" r="19" /><circle class="bar" cx="24" cy="24" r="19" stroke-dasharray=${C} stroke-dashoffset=${over ? 0 : C * (1 - frac)} /></svg>
-    <div class="t-main">
-      <span class="t-label">${over ? (isCardio ? 'Tempo concluído' : 'Descanso concluído') : (isCardio ? t.label : 'Descanso · ' + t.label)}</span>
-      <span class="t-time num">${over ? '+' + fmtTime(Math.floor(-ms / 1000)) : fmtTime(rem)}</span>
-    </div>
-    ${!over && html`<button class="t-btn" aria-label="Menos 15 segundos" onClick=${() => adj(-15)}>−15</button>`}
-    <button class="t-btn" aria-label="Mais 15 segundos" onClick=${() => adj(15)}>+15</button>
-    <button class="t-btn" aria-label="Fechar cronômetro" onClick=${c.stopTimer}>${over ? I.check() : I.close()}</button>
-  </div>`;
+  return null;
 }
 
-function SessionBar({ w }) {
-  const c = useCtx(); const L = c.data.live;
-  const now = useNow(true, 1000);
+function SessionChip({ w }) {
+  const c = useCtx(); const L = liveFor(c.data, w);
+  const now = useNow(!!L, 1000);
+  const onClick = () => (L ? c.openSheet({ type: 'session', wid: w.id }) : c.up((d) => { ensureLive(d, w.id); }));
+  return html`<button type="button" class=${'sess-chip' + (L ? ' on' : '')} aria-label=${L ? 'Treino em andamento: concluir ou descartar' : 'Iniciar cronômetro do treino'} onClick=${onClick}>
+    ${L ? I.timer() : I.play()}<span class="num">${L ? fmtClock(now - L.start) : 'Iniciar'}</span>
+  </button>`;
+}
+
+function SessionSheet({ wid }) {
+  const c = useCtx(); const w = c.data.workouts.find((x) => x.id === wid); const L = liveFor(c.data, w);
+  const now = useNow(!!L, 1000);
+  if (!w || !L) return null;
   const list = allEx(w);
   const total = list.reduce((a, e) => a + e.sets, 0);
   const done = list.reduce((a, e) => a + normEntry(L.ex[e.id], e).done.filter(Boolean).length, 0);
-  return html`<div class="sess-bar">
-    <div class="sess-info"><span class="eyebrow">Em andamento</span><span class="num">${fmtClock(now - L.start)}</span></div>
-    <div class="sess-count num">${done}/${total}<small>séries</small></div>
-    <button class="ib" aria-label="Descartar treino em andamento" onClick=${c.askDiscard}>${I.trash()}</button>
-    <button class="btn ink" onClick=${c.finish}>Concluir</button>
-  </div>`;
-}
-
-function Dock() {
-  const c = useCtx(); const L = c.data.live;
-  const w = L && c.route.name === 'workout' && c.route.id === L.wid ? c.data.workouts.find((x) => x.id === L.wid) : null;
-  if (!c.timer && !w) return null;
-  return html`<div class="dock">${c.timer && html`<${TimerPill} />`}${w && html`<${SessionBar} w=${w} />`}</div>`;
+  return html`<${Sheet} title="Treino em andamento">
+    <div class="stats sess-stats">
+      <div class="stat"><span class="eyebrow">Tempo</span><span class="num big">${fmtClock(now - L.start)}</span></div>
+      <div class="stat"><span class="eyebrow">Séries feitas</span><span class="num big">${done}/${total}</span></div>
+    </div>
+    <div class="sheet-actions">
+      <button type="button" class="btn ghost danger" onClick=${c.askDiscard}>${I.trash()}Descartar</button>
+      <button type="button" class="btn ink grow" onClick=${() => { c.closeSheet(); c.finish(); }}>Concluir treino</button>
+    </div>
+  <//>`;
 }
 
 /* ================= sheets ================= */
@@ -1222,7 +1184,7 @@ function ConfirmSheet({ title, text, label, onOk }) {
 }
 
 function SheetHost({ s }) {
-  const map = { exercise: ExerciseSheet, cardio: CardioSheet, meta: MetaSheet, color: ColorSheet, history: HistorySheet, meal: MealSheet, tech: TechSheet, confirm: ConfirmSheet };
+  const map = { session: SessionSheet, exercise: ExerciseSheet, cardio: CardioSheet, meta: MetaSheet, color: ColorSheet, history: HistorySheet, meal: MealSheet, tech: TechSheet, confirm: ConfirmSheet };
   const C = map[s.type];
   return C ? html`<${C} key=${s.n} ...${s} />` : null;
 }
@@ -1405,7 +1367,7 @@ function App({ hot }) {
 
   return html`<${Ctx.Provider} value=${ctx}>
     ${screen}
-    <${Dock} />
+    <${TimerWatcher} />
     ${sheet && html`<${SheetHost} s=${sheet} />`}
     ${toastMsg && html`<div class="toast" role="status">${toastMsg}</div>`}
   <//>`;
