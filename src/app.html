@@ -116,15 +116,18 @@ ul{list-style:none}
 .pv-div{grid-column:1/-1;border-top:1px dashed var(--hair);margin-top:6px}
 .pv-div+.pv-label{margin-top:2px}
 .tap-card{cursor:pointer}
-.mp-list{display:flex;flex-direction:column;gap:14px}
-.mp{display:flex;flex-direction:column;gap:2px}
-.mp+.mp{padding-top:14px;border-top:1px dashed var(--hair)}
-.mp-t{font-weight:700;color:var(--fg2);font-size:13px;letter-spacing:.02em}
-.mp-n{font-weight:700;font-size:15.5px}
-.mp-items{display:flex;flex-direction:column;gap:2px;margin-top:4px}
-.mp-items li{display:grid;grid-template-columns:4.8em minmax(0,1fr);gap:8px;align-items:baseline;font-size:14px}
-.mp-q{font-weight:700;font-size:14px}
-.mp-f{min-width:0;overflow-wrap:anywhere}
+.mp-list{display:flex;flex-direction:column}
+/* linha do tempo: horário | bolinha com a linha até a próxima refeição | refeição */
+.mp{display:grid;grid-template-columns:3em 14px minmax(0,1fr);column-gap:8px;position:relative}
+.mp-t{font-weight:700;color:var(--fg2);font-size:13px;padding-top:2px}
+.mp-dot{position:relative;display:flex;justify-content:center}
+.mp-dot::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--fg);margin-top:6px;position:relative;z-index:1}
+.mp:not(:last-child) .mp-dot::after{content:"";position:absolute;top:19px;bottom:4px;left:50%;width:2px;margin-left:-1px;background:var(--hair);border-radius:1px}
+.mp-c{display:flex;flex-direction:column;gap:2px;min-width:0}
+.mp:not(:last-child) .mp-c{padding-bottom:14px}
+.mp-n{font-weight:700;font-size:15px}
+.mp-it{font-size:13.5px;color:var(--fg2);overflow-wrap:anywhere}
+.mp-it b{color:var(--fg);font-weight:700}
 
 /* ---------- botões e controles ---------- */
 .btn{height:44px;padding:0 18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15px;white-space:nowrap;transition:transform .1s}
@@ -1021,9 +1024,12 @@ function DietCard() {
     <div class="card-body" ...${tap(open)}>
       <div class="mp-list">
         ${d.meals.map((m) => html`<div class="mp" key=${m.id}>
-          ${m.time && html`<span class="mp-t num">${m.time}</span>`}
-          <span class="mp-n">${m.name}</span>
-          ${m.items.length > 0 && html`<ul class="mp-items">${m.items.map((x) => html`<li key=${x.id}><span class="mp-q num">${x.q}</span><span class="mp-f">${x.f}</span></li>`)}</ul>`}
+          <span class="mp-t num">${m.time || ''}</span>
+          <span class="mp-dot" aria-hidden="true"></span>
+          <div class="mp-c">
+            <span class="mp-n">${m.name}</span>
+            ${m.items.map((x) => html`<span class="mp-it" key=${x.id}><b class="num">${x.q}</b> ${x.f}</span>`)}
+          </div>
         </div>`)}
       </div>
       ${!d.meals.length && html`<p class="mut">Nenhuma refeição ainda.</p>`}
