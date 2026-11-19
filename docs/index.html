@@ -167,7 +167,7 @@ ul{list-style:none}
 
 /* ---------- tela do treino ---------- */
 .w-head{display:flex;flex-direction:column;gap:4px;padding:2px 0;border-radius:14px}
-.w-head.tap{padding:10px 12px;margin:0 -12px;background:var(--tint);cursor:pointer;outline:1.5px dashed var(--hair);outline-offset:-1.5px}
+.w-head.tap{padding:10px 12px;margin:0;background:var(--tint);cursor:pointer;outline:1.5px dashed var(--hair);outline-offset:-1.5px}
 .w-title{font-family:var(--font-num);font-stretch:86%;font-weight:800;font-size:31px;line-height:1.06;letter-spacing:-.01em;text-wrap:balance}
 .w-sub{color:var(--fg2);font-size:14px}
 .edit-hint{font-size:13px;color:var(--fg2);display:flex;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--tint)}
@@ -208,15 +208,25 @@ ul{list-style:none}
 .rest.on{background:var(--accent);color:var(--on-accent)}
 .rest.over{background:var(--good);color:var(--on-good)}
 .rest.static{margin:0;cursor:default;height:28px;font-size:13.5px}
+.tqs{display:inline-flex;gap:4px;flex:none}
+.grip{display:grid;place-items:center;width:40px;height:48px;margin:6px 4px 0 0;color:var(--fg3);cursor:grab}
+.grip .i{stroke-width:3.2}
+.sortable>[data-sort]{transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .2s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.sortable>.dragging{position:relative;z-index:5;transition:box-shadow .2s;box-shadow:var(--shadow);background:var(--tint2);cursor:grabbing}
+.sortable>.dragging.dropping{transition:transform .19s cubic-bezier(.2,.8,.2,1),box-shadow .19s}
 .reorder{display:flex;flex-direction:column;padding:6px 6px 6px 0}
 .reorder .ib{width:38px;height:30px;border-radius:9px}
 .reorder .ib .i{width:20px;height:20px}
-.log{padding:0 12px 14px;display:flex;flex-direction:column;gap:8px}
+.log{padding:0 12px 12px;gap:4px;display:flex;flex-direction:column;gap:8px}
 .tq-note{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--tint);font-size:14px;line-height:1.35}
 .tq-note b{font-weight:700}
 .tq-note .calc{font-family:var(--font-num);font-stretch:80%;font-weight:700;font-variant-numeric:tabular-nums}
-.log-row{display:grid;grid-template-columns:54px auto minmax(0,1fr) 40px;align-items:center;gap:10px}
-.log-row.load-row{grid-template-columns:54px auto minmax(0,1fr);padding:10px 0;margin-bottom:2px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.log-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px}
+.log-row.load-row{padding:8px 0;margin-bottom:4px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.lbl-box{display:flex;flex-direction:column;gap:1px;min-width:0}
+.log .stp{width:152px;height:38px;justify-content:space-between}
+.log .stp button{height:38px}
+.log .stp input{flex:1;width:auto;min-width:0;height:38px}
 .key .pill{font-size:14.5px;font-weight:700}
 .legend-tq{padding-top:14px;border-top:1px solid var(--hair)}
 .lbl{font-size:13px;font-weight:600;color:var(--fg2);white-space:nowrap}
@@ -246,7 +256,11 @@ ul{list-style:none}
 .sess-chip{height:36px;padding:0 12px 0 10px;margin-right:2px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;background:var(--tint2);font-weight:600;font-size:14px;white-space:nowrap;flex:none}
 .sess-chip .num{font-size:16px;font-weight:800}
 .sess-chip .i{width:17px;height:17px}
-.sess-chip.on{background:var(--ink);color:var(--on-ink)}
+.sess-chip.on{background:var(--ink);color:var(--on-ink);animation:chipPop .45s cubic-bezier(.2,.8,.2,1)}
+.sess-chip{transition:background-color .35s ease,color .35s ease}
+.sc-in{display:inline-flex;align-items:center;gap:6px;animation:chipIn .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes chipPop{0%{transform:scale(.9)}55%{transform:scale(1.06)}100%{transform:none}}
+@keyframes chipIn{from{opacity:0;transform:translateY(5px)}}
 .stats.sess-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
 
 /* ---------- sheets ---------- */
@@ -257,6 +271,7 @@ ul{list-style:none}
 .sheet-h h2{flex:1;font-family:var(--font-num);font-stretch:86%;font-weight:800;font-size:23px;line-height:1.15;min-width:0;text-wrap:balance}
 .sheet-h .ib{margin-right:-10px}
 .field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.field>.stp{align-self:flex-start}
 .field>label,.flabel{font-size:13px;font-weight:600;color:var(--fg2)}
 .opt{font-weight:500;color:var(--fg3);margin-left:4px}
 .txt{height:46px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:0 14px;width:100%;min-width:0}
@@ -362,7 +377,7 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 <div id="app"></div>
 
 <script type="module">
-import { html, render, useState, useEffect, useRef, useCallback, createContext, useContext } from './vendor/htm-preact-3.1.1.js';
+import { html, render, useState, useEffect, useLayoutEffect, useRef, useCallback, createContext, useContext } from './vendor/htm-preact-3.1.1.js';
 
 /* ================= utilidades ================= */
 const KEY = 'ficha:v1';
@@ -390,10 +405,10 @@ const scheme = (e) => `${e.sets}×${e.min === e.max ? e.min : `${e.min}–${e.ma
 const kg = (w) => (w == null ? '— kg' : `${fmtNum(w)} kg`);
 const allEx = (w) => [...w.warmup, ...w.main];
 const findEx = (w, id) => allEx(w).find((e) => e.id === id);
-const techOf = (d, id) => (id ? d.techniques.find((t) => t.id === id) || null : null);
+const techIds = (e) => (Array.isArray(e.techs) ? e.techs : e.tech ? [e.tech] : []);
+const techsOf = (d, e) => techIds(e).map((id) => d.techniques.find((t) => t.id === id)).filter(Boolean);
 const shouldUp = (e) => e.min !== e.max && e.last.reps.length >= e.sets && e.last.reps.every((r) => r >= e.max);
 const half = (v) => Math.round(v * 2) / 2;
-const notation = (e, t) => `${t ? `[${plainSym(t.sym)}] ` : ''}${e.sets}x${e.min === e.max ? e.min : `${e.min}-${e.max}`} → ${e.name || 'Exercício'}${e.last.w != null ? ` (${fmtNum(e.last.w)}kg)` : ''}${e.last.reps.length ? `\n(${e.last.reps.join('x')})` : ''}`;
 const cardStyle = (k) => `--cbg:var(--c-${k});--cborder:${k === 'default' ? 'var(--line)' : 'transparent'}`;
 const tap = (fn) => ({ role: 'button', tabindex: 0, onClick: (e) => { e.stopPropagation(); fn(); }, onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } } });
 
@@ -426,11 +441,12 @@ const I = {
   dumbbell: icon(['M6.5 7v10', 'M17.5 7v10', 'M3.5 9.5v5', 'M20.5 9.5v5', 'M6.5 12h11']),
   chart: icon(['M4 19.5h16', 'M5 15l4.2-4.2 3.3 3.3L19 7.6']),
   nodrop: icon(['M12 3.8s-5.8 6.3-5.8 10.2a5.8 5.8 0 0 0 11.6 0c0-3.9-5.8-10.2-5.8-10.2z', 'M4.5 4.5l15 15']),
+  grip: icon(['M9 6h.01', 'M15 6h.01', 'M9 12h.01', 'M15 12h.01', 'M9 18h.01', 'M15 18h.01']),
   play: icon(['M8 5.6v12.8a.8.8 0 0 0 1.2.7l10-6.4a.8.8 0 0 0 0-1.4l-10-6.4A.8.8 0 0 0 8 5.6z'], true),
 };
 
 /* ================= dados de exemplo ================= */
-function mkEx(name, tech, sets, min, max, w, reps, rest) { return { id: uid(), name, tech, sets, min, max, last: { w, reps }, rest }; }
+function mkEx(name, tech, sets, min, max, w, reps, rest) { return { id: uid(), name, techs: tech ? [tech] : [], sets, min, max, last: { w, reps }, rest }; }
 const CARDIO_DESC = 'Média/Alta intensidade · caminhada, escada, bike ou elíptico';
 // Treinos da semana (terça a domingo), transcritos da ficha do coach.
 function weekWorkouts() {
@@ -538,6 +554,8 @@ function loadData(hot) {
   try { const s = localStorage.getItem(KEY); if (s) { const x = JSON.parse(s); if (x && x.v === 1) d = x; } } catch (e) {}
   if (!d) d = seed();
   // dados salvos antes dos treinos da semana: acrescenta os dias que faltam, sem mexer no resto
+  // exercícios antigos tinham uma técnica só (tech); agora é uma lista (techs)
+  d.workouts.forEach((w) => allEx(w).forEach((e) => { if (!Array.isArray(e.techs)) { e.techs = e.tech ? [e.tech] : []; delete e.tech; } }));
   if ((d.seedRev || 1) < SEED_REV) {
     const have = new Set(d.workouts.map((w) => norm(w.day).slice(0, 3)));
     weekWorkouts().forEach((w) => { if (!have.has(norm(w.day).slice(0, 3))) d.workouts.push(w); });
@@ -613,6 +631,7 @@ let latest = null;
 /* ================= peças pequenas ================= */
 // símbolos em negrito matemático (𝐟, 𝐅) viram letras comuns, para usar a fonte arredondada
 const plainSym = (s) => Array.from(s || '').map((ch) => { const cp = ch.codePointAt(0); if (cp >= 0x1D41A && cp <= 0x1D433) return String.fromCharCode(97 + cp - 0x1D41A); if (cp >= 0x1D400 && cp <= 0x1D419) return String.fromCharCode(97 + cp - 0x1D400); return ch; }).join('');
+function Tqs({ ts, xs }) { return ts.length ? html`<span class="tqs">${ts.map((t) => html`<${Tq} key=${t.id} t=${t} xs=${xs} />`)}</span>` : null; }
 function Tq({ t, xs }) { return t ? html`<span class=${'tq' + (xs ? ' tq-xs' : '')} title=${t.name}>${plainSym(t.sym)}</span>` : null; }
 
 function Stepper({ id, value, step = 1, min = 0, max = 999, unit, decimals, onChange, label }) {
@@ -662,24 +681,22 @@ function RestChip({ k, label, secs, kind = 'rest' }) {
     onClick=${() => (over ? c.stopTimer() : c.startTimer({ key: k, label, secs, kind }))}>${kind === 'cardio' && !on ? I.play() : I.timer()}<span>${txt}</span></button>`;
 }
 
-function ExMeta({ e, live, entry }) {
-  const done = live && entry ? entry.done.filter(Boolean).length : 0;
-  const today = !!(live && entry && live.ex[e.id]);
-  const w = today ? entry.w : e.last.w;
-  const reps = today ? entry.reps : e.last.reps;
+function ExMeta({ e, live }) {
+  const en = live && live.ex[e.id] ? normEntry(live.ex[e.id], e) : null;
+  const w = en ? en.w : e.last.w;
+  const reps = en ? en.reps : e.last.reps;
   const up = shouldUp(e) && (w == null || e.last.w == null || w <= e.last.w);
   return html`<span class="ex-meta">
     <span class="pill scheme num">${scheme(e)}</span>
     <span class="pill load num">${kg(w)}${up && html`<span class="up" title="Hora de subir a carga">${I.arrowUp()}</span>`}</span>
     <span class="pill reps num">${reps.length ? reps.join(' · ') : 'sem registro'}</span>
-    ${done > 0 && html`<span class="pill prog">${done === e.sets ? I.check() : null}${done}/${e.sets}</span>`}
   </span>`;
 }
 
 /* ================= home ================= */
-function PvRow({ e, t }) {
+function PvRow({ e, ts }) {
   return html`<span class="pv">
-    <span>${t && html`<${Tq} t=${t} xs />`}</span>
+    <span>${ts.length > 0 && html`<${Tqs} ts=${ts} xs />`}</span>
     <span class="pv-s num">${scheme(e)}</span>
     <span class="pv-n">${e.name}</span>
     <span class="pv-w num">${e.last.w != null ? fmtNum(e.last.w) + ' kg' : ''}</span>
@@ -718,8 +735,8 @@ function WorkoutCard({ w }) {
     <div class="card-body" ...${tap(open)}>
       <h2 class="card-title">${w.title || 'Treino sem nome'}</h2>
       ${allEx(w).length > 0 && html`<div class="pv-grid">
-        ${w.warmup.length > 0 && html`<span class="pv-label">${I.flame()}Aquecimento</span>${w.warmup.map((e) => html`<${PvRow} key=${e.id} e=${e} t=${techOf(data, e.tech)} />`)}`}
-        ${w.main.length > 0 && html`<span class="pv-label">${I.dumbbell()}Exercícios</span>${w.main.map((e) => html`<${PvRow} key=${e.id} e=${e} t=${techOf(data, e.tech)} />`)}`}
+        ${w.warmup.length > 0 && html`<span class="pv-label">${I.flame()}Aquecimento</span>${w.warmup.map((e) => html`<${PvRow} key=${e.id} e=${e} ts=${techsOf(data, e)} />`)}`}
+        ${w.main.length > 0 && html`<span class="pv-label">${I.dumbbell()}Exercícios</span>${w.main.map((e) => html`<${PvRow} key=${e.id} e=${e} ts=${techsOf(data, e)} />`)}`}
       </div>`}
       ${w.cardio.length > 0 && html`<div class="pv-cardio">${I.pulse()}<span><b class="num">${w.cardio.map((k) => k.min + ' min').join(' + ')}</b> · ${w.cardio.map((k) => k.desc).join(', ')}</span></div>`}
       ${!allEx(w).length && !w.cardio.length && html`<p class="mut">Sem exercícios ainda. Abra para montar.</p>`}
@@ -768,7 +785,7 @@ function Home() {
 }
 
 /* ================= tela do treino ================= */
-function LogPanel({ w, e, entry, tech }) {
+function LogPanel({ w, e, entry }) {
   const c = useCtx();
   const set = (fn) => c.up((d) => {
     const W = d.workouts.find((x) => x.id === w.id); const ex = W && findEx(W, e.id); if (!ex) return;
@@ -776,48 +793,131 @@ function LogPanel({ w, e, entry, tech }) {
     L.ex[e.id] = normEntry(L.ex[e.id], ex);
     fn(L.ex[e.id]);
   });
-  const toggle = (i) => {
-    const willDo = !entry.done[i];
-    set((en) => { en.done[i] = !en.done[i]; });
-    if (willDo && c.data.settings.autoRest && e.rest > 0) c.startTimer({ key: e.id, label: e.name, secs: e.rest });
-  };
   return html`<div class="log">
     <div class="log-row load-row">
-      <span class="lbl">Carga</span>
-      <${Stepper} id=${'w-' + e.id} value=${entry.w} step=${1} unit="kg" decimals label="carga" onChange=${(v) => set((en) => { en.w = v; })} />
-      <span class="hint">última ${kg(e.last.w)}</span>
+      <span class="lbl-box"><span class="lbl">Carga (kg)</span><span class="hint">última ${kg(e.last.w)}</span></span>
+      <${Stepper} id=${'w-' + e.id} value=${entry.w} step=${1} decimals label="carga em kg" onChange=${(v) => set((en) => { en.w = v; })} />
     </div>
-    ${entry.reps.map((r, i) => html`<div class=${'log-row set' + (entry.done[i] ? ' is-done' : '')} key=${i}>
+    ${entry.reps.map((r, i) => html`<div class="log-row" key=${i}>
       <span class="lbl">Série ${i + 1}</span>
       <${Stepper} id=${`r-${e.id}-${i}`} value=${r} min=${0} max=${100} label=${`reps da série ${i + 1}`} onChange=${(v) => set((en) => { en.reps[i] = v; })} />
-      <span></span>
-      <button type="button" class=${'chk' + (entry.done[i] ? ' on' : '')} aria-pressed=${entry.done[i]} aria-label=${`Série ${i + 1} feita`} onClick=${() => toggle(i)}>${I.check()}</button>
     </div>`)}
   </div>`;
 }
 
-function ExerciseRow({ w, e, edit, open, onToggle, onMove, first, last }) {
+function ExerciseRow({ w, e, edit, open, onToggle }) {
   const c = useCtx();
-  const tech = techOf(c.data, e.tech);
+  const ts = techsOf(c.data, e);
   const live = liveFor(c.data, w);
   const entry = normEntry(live && live.ex[e.id], e);
-  const allDone = live && entry.done.every(Boolean);
   const editIt = () => c.openSheet({ type: 'exercise', wid: w.id, eid: e.id });
-  return html`<div class=${'ex' + (open ? ' open' : '') + (allDone ? ' done' : '') + (edit ? ' editing' : '')}>
+  return html`<div class=${'ex' + (open ? ' open' : '') + (edit ? ' editing' : '')} data-sort=${edit ? '' : undefined}>
     <div class="ex-top">
       <button type="button" class="ex-head" aria-expanded=${edit ? undefined : !!open} onClick=${edit ? editIt : onToggle}>
-        <span class="ex-name"><${Tq} t=${tech} /><span class="nm">${e.name}</span></span>
-        <${ExMeta} e=${e} live=${live} entry=${entry} />
+        <span class="ex-name"><${Tqs} ts=${ts} /><span class="nm">${e.name}</span></span>
+        <${ExMeta} e=${e} live=${live} />
       </button>
       ${edit
-        ? html`<div class="reorder">
-            <button class="ib" aria-label="Mover para cima" disabled=${first} onClick=${() => onMove(-1)}>${I.upc()}</button>
-            <button class="ib" aria-label="Mover para baixo" disabled=${last} onClick=${() => onMove(1)}>${I.down()}</button>
-          </div>`
+        ? html`<span class="grip" title="Segure e arraste para reordenar" aria-hidden="true">${I.grip()}</span>`
         : html`<${RestChip} k=${e.id} label=${e.name} secs=${e.rest} />`}
     </div>
-    ${!edit && html`<div class=${'log-wrap' + (open ? ' open' : '')} inert=${!open}><div class="log-clip"><${LogPanel} w=${w} e=${e} entry=${entry} tech=${tech} /></div></div>`}
+    ${!edit && html`<div class=${'log-wrap' + (open ? ' open' : '')} inert=${!open}><div class="log-clip"><${LogPanel} w=${w} e=${e} entry=${entry} /></div></div>`}
   </div>`;
+}
+
+/* Reordenar segurando e arrastando, como as notas do Google Keep:
+   segurar ~0,3 s levanta o item; os outros deslizam para abrir espaço. */
+function useSortable(enabled, onMove) {
+  const ref = useRef(null);
+  const moveRef = useRef(onMove); moveRef.current = onMove;
+  const pending = useRef(false);
+  const dragged = useRef(false);
+  useLayoutEffect(() => {
+    if (!pending.current || !ref.current) return;
+    pending.current = false;
+    [...ref.current.children].forEach((el) => { el.style.transition = 'none'; el.style.transform = ''; el.classList.remove('dragging', 'dropping'); void el.offsetHeight; el.style.transition = ''; });
+  });
+  useEffect(() => {
+    const box = ref.current;
+    if (!box || !enabled) return;
+    let timer = null;
+    const items = () => [...box.children].filter((x) => x.hasAttribute('data-sort'));
+    const begin = (el, startY, pid) => {
+      const els = items(); const from = els.indexOf(el);
+      if (from < 0) return;
+      const rects = els.map((x) => x.getBoundingClientRect());
+      const gap = rects.length > 1 ? rects[1].top - rects[0].bottom : 8;
+      const h = rects[from].height + gap;
+      let to = from;
+      dragged.current = true;
+      el.classList.add('dragging');
+      try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
+      const noScroll = (e) => e.preventDefault();
+      const move = (e) => {
+        if (e.pointerId !== pid) return;
+        const dy = e.clientY - startY;
+        el.style.transform = `translateY(${dy}px) scale(1.03)`;
+        const center = rects[from].top + rects[from].height / 2 + dy;
+        let t = from;
+        els.forEach((_, i) => {
+          const mid = rects[i].top + rects[i].height / 2;
+          if (i < from && center < mid) t = Math.min(t, i);
+          if (i > from && center > mid) t = Math.max(t, i);
+        });
+        to = t;
+        els.forEach((x, i) => {
+          if (i === from) return;
+          const shift = from < to && i > from && i <= to ? -h : to < from && i >= to && i < from ? h : 0;
+          x.style.transform = shift ? `translateY(${shift}px)` : '';
+        });
+      };
+      const end = (e) => {
+        if (e.pointerId !== pid) return;
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', end);
+        window.removeEventListener('pointercancel', end);
+        window.removeEventListener('touchmove', noScroll);
+        let target = 0;
+        if (to > from) for (let i = from + 1; i <= to; i++) target += rects[i].height + gap;
+        if (to < from) for (let i = to; i < from; i++) target -= rects[i].height + gap;
+        el.classList.add('dropping');
+        el.style.transform = `translateY(${target}px)`;
+        setTimeout(() => {
+          setTimeout(() => { dragged.current = false; }, 60);
+          if (to !== from) { pending.current = true; moveRef.current(from, to); }
+          else { els.forEach((x) => { x.style.transform = ''; }); el.classList.remove('dragging', 'dropping'); }
+        }, 190);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', end);
+      window.addEventListener('pointercancel', end);
+      window.addEventListener('touchmove', noScroll, { passive: false });
+    };
+    const down = (ev) => {
+      if (ev.button) return;
+      const el = ev.target.closest('[data-sort]');
+      if (!el || el.parentElement !== box) return;
+      const x0 = ev.clientX, y0 = ev.clientY, pid = ev.pointerId;
+      const stop = () => { clearTimeout(timer); window.removeEventListener('pointermove', pre); window.removeEventListener('pointerup', stop); window.removeEventListener('pointercancel', stop); };
+      const pre = (e) => { if (e.pointerId === pid && Math.hypot(e.clientX - x0, e.clientY - y0) > 8) stop(); };
+      window.addEventListener('pointermove', pre);
+      window.addEventListener('pointerup', stop);
+      window.addEventListener('pointercancel', stop);
+      timer = setTimeout(() => { stop(); begin(el, y0, pid); }, ev.pointerType === 'mouse' ? 200 : 300);
+    };
+    const noMenu = (e) => { if (e.target.closest('[data-sort]')) e.preventDefault(); };
+    const noClickAfterDrag = (e) => { if (dragged.current) { e.stopPropagation(); e.preventDefault(); } };
+    box.addEventListener('pointerdown', down);
+    box.addEventListener('contextmenu', noMenu);
+    box.addEventListener('click', noClickAfterDrag, true);
+    return () => { clearTimeout(timer); box.removeEventListener('pointerdown', down); box.removeEventListener('contextmenu', noMenu); box.removeEventListener('click', noClickAfterDrag, true); };
+  }, [enabled]);
+  return ref;
+}
+
+function SortList({ enabled, onMove, children }) {
+  const ref = useSortable(enabled, onMove);
+  return html`<div class=${'ex-list' + (enabled ? ' sortable' : '')} ref=${ref}>${children}</div>`;
 }
 
 function CardioBox({ w, edit }) {
@@ -867,20 +967,26 @@ function WorkoutScreen({ id, startEdit }) {
   const [edit, setEdit] = useState(!!startEdit);
   const [open, setOpen] = useState(null);
   if (!w) return html`<div class="screen"><div class="wrap"><${TopBar} /><p class="empty">Este treino foi excluído.</p></div></div>`;
-  const move = (sec, i, dir) => c.up((d) => {
-    const arr = d.workouts.find((x) => x.id === id)[sec]; const j = i + dir;
-    if (j < 0 || j >= arr.length) return;
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+  const move = (sec, from, to) => c.up((d) => {
+    const arr = d.workouts.find((x) => x.id === id)[sec];
+    arr.splice(to, 0, arr.splice(from, 1)[0]);
   });
+  // com o treino em andamento, abrir um exercício já o registra para o histórico
+  const toggle = (e) => {
+    const opening = open !== e.id;
+    setOpen(opening ? e.id : null);
+    if (opening && data.live && data.live.wid === id && !data.live.ex[e.id]) {
+      c.up((d) => { const ex = findEx(d.workouts.find((x) => x.id === id), e.id); if (d.live && ex) d.live.ex[e.id] = normEntry(null, ex); });
+    }
+  };
   const section = (sec, label) => {
     const list = w[sec];
     if (!edit && !list.length) return null;
     return html`<section class="sec" aria-label=${label}>
       <h2 class="sec-h">${sec === 'warmup' ? I.flame() : I.dumbbell()}<span>${label}</span>${list.length > 0 && html`<span class="count num">${list.length}</span>`}</h2>
-      <div class="ex-list">
-        ${list.map((e, i) => html`<${ExerciseRow} key=${e.id} w=${w} e=${e} edit=${edit} open=${open === e.id}
-          onToggle=${() => setOpen((o) => (o === e.id ? null : e.id))} onMove=${(dir) => move(sec, i, dir)} first=${i === 0} last=${i === list.length - 1} />`)}
-      </div>
+      <${SortList} enabled=${edit} onMove=${(from, to) => move(sec, from, to)}>
+        ${list.map((e) => html`<${ExerciseRow} key=${e.id} w=${w} e=${e} edit=${edit} open=${open === e.id} onToggle=${() => toggle(e)} />`)}
+      <//>
       ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'exercise', wid: id, section: sec })}>${I.plus()} ${sec === 'warmup' ? 'Adicionar aquecimento' : 'Adicionar exercício'}</button>`}
     </section>`;
   };
@@ -895,7 +1001,6 @@ function WorkoutScreen({ id, startEdit }) {
       <span class="eyebrow">${w.day || 'Sem dia definido'}</span>
       <h1 class="w-title">${w.title || 'Treino sem nome'}</h1>
     </header>
-    ${edit && html`<p class="edit-hint">${I.edit()}<span>Toque em um item para editar. Use as setas para reordenar.</span></p>`}
     ${section('warmup', 'Aquecimento')}
     ${section('main', 'Exercícios')}
     <${CardioBox} w=${w} edit=${edit} />
@@ -932,7 +1037,7 @@ function SessionChip({ w }) {
   const now = useNow(!!L, 1000);
   const onClick = () => (L ? c.openSheet({ type: 'session', wid: w.id }) : c.up((d) => { ensureLive(d, w.id); }));
   return html`<button type="button" class=${'sess-chip' + (L ? ' on' : '')} aria-label=${L ? 'Treino em andamento: concluir ou descartar' : 'Iniciar cronômetro do treino'} onClick=${onClick}>
-    ${L ? I.timer() : I.play()}<span class="num">${L ? fmtClock(now - L.start) : 'Iniciar'}</span>
+    <span class="sc-in" key=${L ? 'on' : 'off'}>${L ? I.timer() : I.play()}<span class="num">${L ? fmtClock(now - L.start) : 'Iniciar'}</span></span>
   </button>`;
 }
 
@@ -941,12 +1046,11 @@ function SessionSheet({ wid }) {
   const now = useNow(!!L, 1000);
   if (!w || !L) return null;
   const list = allEx(w);
-  const total = list.reduce((a, e) => a + e.sets, 0);
-  const done = list.reduce((a, e) => a + normEntry(L.ex[e.id], e).done.filter(Boolean).length, 0);
+  const done = list.filter((e) => L.ex[e.id]).length;
   return html`<${Sheet} title="Treino em andamento">
     <div class="stats sess-stats">
       <div class="stat"><span class="eyebrow">Tempo</span><span class="num big">${fmtClock(now - L.start)}</span></div>
-      <div class="stat"><span class="eyebrow">Séries feitas</span><span class="num big">${done}/${total}</span></div>
+      <div class="stat"><span class="eyebrow">Exercícios registrados</span><span class="num big">${done}/${list.length}</span></div>
     </div>
     <div class="sheet-actions">
       <button type="button" class="btn ghost danger" onClick=${c.askDiscard}>${I.trash()}Descartar</button>
@@ -977,32 +1081,27 @@ function ExerciseSheet({ wid, eid, section }) {
   const c = useCtx();
   const w = c.data.workouts.find((x) => x.id === wid);
   const orig = w && eid ? findEx(w, eid) : null;
-  const origSec = orig ? (w.warmup.some((x) => x.id === eid) ? 'warmup' : 'main') : section || 'main';
-  const [f, setF] = useState(() => (orig ? clone(orig) : {
-    id: uid(), name: '', tech: null, sets: origSec === 'warmup' ? 2 : 3, min: origSec === 'warmup' ? 15 : 8, max: origSec === 'warmup' ? 15 : 12,
-    last: { w: null, reps: [] }, rest: origSec === 'warmup' ? 15 : c.data.settings.rest,
+  const sec = orig ? (w.warmup.some((x) => x.id === eid) ? 'warmup' : 'main') : section || 'main';
+  const [f, setF] = useState(() => (orig ? { ...clone(orig), techs: techIds(orig) } : {
+    id: uid(), name: '', techs: [], sets: sec === 'warmup' ? 2 : 3, min: sec === 'warmup' ? 15 : 8, max: sec === 'warmup' ? 15 : 12,
+    last: { w: null, reps: [] }, rest: sec === 'warmup' ? 15 : c.data.settings.rest,
   }));
-  const [sec, setSec] = useState(origSec);
+  const [custom, setCustom] = useState(() => !RESTS.includes(f.rest));
   const [err, setErr] = useState('');
   const [del, setDel] = useState(false);
   if (!w) return null;
   const S = (k, v) => setF((p) => ({ ...p, [k]: v }));
-  const setSets = (n) => setF((p) => ({ ...p, sets: n, last: { ...p.last, reps: p.last.reps.slice(0, n) } }));
-  const setRep = (i, v) => setF((p) => { const reps = Array.from({ length: p.sets }, (_, j) => p.last.reps[j] ?? null); reps[i] = v; while (reps.length && reps[reps.length - 1] == null) reps.pop(); return { ...p, last: { ...p.last, reps } }; });
+  const toggleTech = (id) => setF((p) => ({ ...p, techs: p.techs.includes(id) ? p.techs.filter((x) => x !== id) : [...p.techs, id] }));
   const names = [...new Set(c.data.workouts.flatMap((x) => allEx(x).map((e) => e.name)))].sort();
-  const t = techOf(c.data, f.tech);
-  const preview = { ...f, last: { ...f.last, reps: f.last.reps.filter((r) => r != null) } };
   const save = () => {
     const name = f.name.trim();
     if (!name) { setErr('Dê um nome ao exercício.'); document.getElementById('ex-name')?.focus(); return; }
-    const item = { ...f, name, last: { w: f.last.w, reps: f.last.reps.filter((r) => r != null).slice(0, f.sets) } };
+    const item = { ...f, name, last: { w: f.last.w, reps: f.last.reps.slice(0, f.sets) } };
+    delete item.tech;
     c.up((d) => {
-      const W = d.workouts.find((x) => x.id === wid); let placed = false;
-      for (const k of ['warmup', 'main']) {
-        const i = W[k].findIndex((x) => x.id === item.id);
-        if (i >= 0) { if (k === sec) { W[k][i] = item; placed = true; } else W[k].splice(i, 1); }
-      }
-      if (!placed) W[sec].push(item);
+      const W = d.workouts.find((x) => x.id === wid);
+      const i = W[sec].findIndex((x) => x.id === item.id);
+      if (i >= 0) W[sec][i] = item; else W[sec].push(item);
     });
     c.closeSheet();
     c.toast(orig ? 'Exercício atualizado' : 'Exercício adicionado');
@@ -1012,15 +1111,7 @@ function ExerciseSheet({ wid, eid, section }) {
     c.up((d) => { const W = d.workouts.find((x) => x.id === wid); W.warmup = W.warmup.filter((x) => x.id !== eid); W.main = W.main.filter((x) => x.id !== eid); if (d.live) delete d.live.ex[eid]; });
     c.closeSheet(); c.toast('Exercício excluído');
   };
-  return html`<${Sheet} title=${orig ? 'Editar exercício' : 'Novo exercício'}>
-    <div class="pv-box" aria-label="Prévia">
-      <span class="eyebrow">Prévia</span>
-      <div class="ex-head">
-        <span class="ex-name"><${Tq} t=${t} /><span class="nm">${f.name || 'Nome do exercício'}</span></span>
-        <${ExMeta} e=${preview} />
-      </div>
-      <pre class="notation">${notation(preview, t)}</pre>
-    </div>
+  return html`<${Sheet} title=${orig ? 'Editar exercício' : sec === 'warmup' ? 'Novo aquecimento' : 'Novo exercício'}>
     <div class="field">
       <label for="ex-name">Nome do exercício</label>
       <input id="ex-name" class="txt" list="ex-names" autocomplete="off" placeholder="Ex.: Elevação Lateral na Polia" value=${f.name} onInput=${(ev) => { S('name', ev.target.value); setErr(''); }} />
@@ -1028,16 +1119,13 @@ function ExerciseSheet({ wid, eid, section }) {
       ${err && html`<span class="err">${err}</span>`}
     </div>
     <div class="field">
-      <span class="flabel">Técnica avançada</span>
+      <span class="flabel">Técnicas avançadas<span class="opt">pode escolher mais de uma</span></span>
       <div class="chips">
-        <button type="button" class=${'chip' + (!f.tech ? ' sel' : '')} onClick=${() => S('tech', null)}>Nenhuma</button>
-        ${c.data.techniques.map((x) => html`<button type="button" class=${'chip' + (f.tech === x.id ? ' sel' : '')} onClick=${() => S('tech', x.id)}><${Tq} t=${x} />${x.name}</button>`)}
+        <button type="button" class=${'chip' + (!f.techs.length ? ' sel' : '')} aria-pressed=${!f.techs.length} onClick=${() => S('techs', [])}>Nenhuma</button>
+        ${c.data.techniques.map((x) => { const on = f.techs.includes(x.id); return html`<button type="button" class=${'chip' + (on ? ' sel' : '')} aria-pressed=${on} onClick=${() => toggleTech(x.id)}><${Tq} t=${x} />${x.name}</button>`; })}
       </div>
     </div>
-    <div class="grid2">
-      <div class="field"><label for="ex-sets">Séries</label><${Stepper} id="ex-sets" value=${f.sets} min=${1} max=${10} label="séries" onChange=${setSets} /></div>
-      <div class="field"><label for="ex-w">Carga da última vez</label><${Stepper} id="ex-w" value=${f.last.w} min=${0} max=${999} unit="kg" decimals label="carga" onChange=${(v) => setF((p) => ({ ...p, last: { ...p.last, w: v } }))} /></div>
-    </div>
+    <div class="field"><label for="ex-sets">Séries</label><${Stepper} id="ex-sets" value=${f.sets} min=${1} max=${10} label="séries" onChange=${(v) => S('sets', v)} /></div>
     <div class="field">
       <span class="flabel">Repetições por série</span>
       <div class="row">
@@ -1047,20 +1135,12 @@ function ExerciseSheet({ wid, eid, section }) {
       </div>
     </div>
     <div class="field">
-      <span class="flabel">Reps feitas da última vez<span class="opt">opcional</span></span>
-      <div class="reps-in">${Array.from({ length: f.sets }, (_, i) => html`<input class="txt rep" id=${'ex-r' + i} inputmode="numeric" autocomplete="off" aria-label=${'Reps da série ' + (i + 1)} placeholder=${'S' + (i + 1)} value=${fmtNum(f.last.reps[i])} onInput=${(ev) => setRep(i, parseNum(ev.target.value))} />`)}</div>
-    </div>
-    <div class="field">
       <span class="flabel">Descanso entre séries</span>
-      <div class="chips">${RESTS.map((s) => html`<button type="button" class=${'chip num' + (f.rest === s ? ' sel' : '')} onClick=${() => S('rest', s)}>${fmtTime(s)}</button>`)}</div>
-      <div class="row"><${Stepper} id="ex-rest" value=${f.rest} step=${15} min=${0} max=${900} unit="s" label="descanso em segundos" onChange=${(v) => S('rest', v)} /><span class="mut num">${fmtTime(f.rest)}</span></div>
-    </div>
-    <div class="field">
-      <span class="flabel">Seção</span>
-      <div><div class="seg">
-        <button type="button" class=${sec === 'warmup' ? 'on' : ''} aria-pressed=${sec === 'warmup'} onClick=${() => setSec('warmup')}>Aquecimento</button>
-        <button type="button" class=${sec === 'main' ? 'on' : ''} aria-pressed=${sec === 'main'} onClick=${() => setSec('main')}>Exercícios</button>
-      </div></div>
+      <div class="chips">
+        ${RESTS.map((s) => { const on = !custom && f.rest === s; return html`<button type="button" class=${'chip num' + (on ? ' sel' : '')} aria-pressed=${on} onClick=${() => { setCustom(false); S('rest', s); }}>${fmtTime(s)}</button>`; })}
+        <button type="button" class=${'chip' + (custom ? ' sel' : '')} aria-pressed=${custom} onClick=${() => setCustom(true)}>Personalizado</button>
+      </div>
+      ${custom && html`<div class="row rest-custom"><${Stepper} id="ex-rest" value=${f.rest} step=${15} min=${0} max=${900} unit="s" label="descanso em segundos" onChange=${(v) => S('rest', v)} /><span class="mut num">${fmtTime(f.rest)}</span></div>`}
     </div>
     <div class="sheet-actions">
       ${orig && html`<button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir'}</button>`}
@@ -1253,7 +1333,7 @@ function TechSheet({ tid }) {
   };
   const remove = () => {
     if (!del) { setDel(true); return; }
-    c.up((d) => { d.techniques = d.techniques.filter((t) => t.id !== tid); d.workouts.forEach((w) => allEx(w).forEach((e) => { if (e.tech === tid) e.tech = null; })); });
+    c.up((d) => { d.techniques = d.techniques.filter((t) => t.id !== tid); d.workouts.forEach((w) => allEx(w).forEach((e) => { e.techs = techIds(e).filter((x) => x !== tid); })); });
     c.closeSheet();
   };
   return html`<${Sheet} title=${orig ? 'Editar técnica' : 'Nova técnica'}>
@@ -1372,7 +1452,6 @@ function SettingsScreen() {
     <section class="set-group" aria-label="Descanso">
       <h2 class="eyebrow">Cronômetro de descanso</h2>
       <div class="set-row"><label for="set-rest">Tempo padrão<span class="mut sm block">Usado em exercícios novos</span></label><${Stepper} id="set-rest" value=${s.rest} step=${15} min=${0} max=${600} unit="s" label="tempo padrão" onChange=${(v) => set('rest', v)} /></div>
-      <${Toggle} id="set-auto" label="Iniciar ao marcar a série" hint="O descanso começa sozinho quando você marca a série como feita" on=${s.autoRest} onChange=${(v) => set('autoRest', v)} />
       <${Toggle} id="set-sound" label="Som ao terminar" on=${s.sound} onChange=${(v) => set('sound', v)} />
       <${Toggle} id="set-vib" label="Vibrar ao terminar" hint="Funciona na maioria dos celulares Android" on=${s.vibrate} onChange=${(v) => set('vibrate', v)} />
     </section>
@@ -1444,22 +1523,19 @@ function App({ hot }) {
   const finish = () => {
     const L = data.live; const W = L && data.workouts.find((x) => x.id === L.wid);
     if (!W) return;
-    const anySet = allEx(W).some((e) => normEntry(L.ex[e.id], e).done.some(Boolean));
+    const touched = allEx(W).filter((e) => L.ex[e.id]);
     const anyCardio = Object.values(L.cardio).some(Boolean);
-    if (!anySet && !anyCardio) { toast('Marque ao menos uma série antes de concluir'); return; }
-    let count = 0;
+    if (!touched.length && !anyCardio) { toast('Abra ou ajuste ao menos um exercício antes de concluir'); return; }
     up((d) => {
       const LL = d.live; const WW = d.workouts.find((x) => x.id === LL.wid);
       const items = [];
       for (const e of allEx(WW)) {
+        if (!LL.ex[e.id]) continue;
         const en = normEntry(LL.ex[e.id], e);
-        const reps = en.reps.filter((_, i) => en.done[i]);
-        if (!reps.length) continue;
-        items.push({ eid: e.id, name: e.name, w: en.w, reps, warm: WW.warmup.some((x) => x.id === e.id) });
-        e.last = { w: en.w, reps };
-        count += reps.length;
+        e.last = { w: en.w, reps: en.reps.slice() };
+        if (WW.main.some((x) => x.id === e.id)) items.push({ eid: e.id, name: e.name, w: en.w, reps: en.reps.slice() });
       }
-      d.sessions.push({ id: uid(), date: todayISO(), wid: WW.id, title: WW.title, day: WW.day, dur: Math.max(1, Math.round((Date.now() - LL.start) / 60000)), cardio: Object.values(LL.cardio).some(Boolean), items: items.filter((i) => !i.warm) });
+      d.sessions.push({ id: uid(), date: todayISO(), wid: WW.id, title: WW.title, day: WW.day, dur: Math.max(1, Math.round((Date.now() - LL.start) / 60000)), cardio: Object.values(LL.cardio).some(Boolean), items });
       d.live = null;
     });
     stopTimer();
