@@ -109,13 +109,14 @@ ul{list-style:none}
 .card-body{display:flex;flex-direction:column;gap:18px;cursor:pointer;border-radius:12px}
 .card-title{font-family:var(--font-num);font-stretch:88%;font-weight:800;font-size:23px;line-height:1.12;text-wrap:balance}
 .card-sub{font-size:13px;color:var(--fg2);margin-top:3px}
-.pv-grid{display:grid;grid-template-columns:auto max-content minmax(0,1fr) auto;column-gap:8px;row-gap:6px;align-items:center;font-size:14px;line-height:1.3}
+.pv-grid{display:grid;grid-template-columns:max-content minmax(0,1fr) auto;column-gap:8px;row-gap:6px;align-items:center;font-size:14px;line-height:1.3}
 .pv{display:contents}
 .pv-label{grid-column:1/-1;display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fg2);margin-top:6px}
 .pv-label:first-child{margin-top:0}
 .pv-label .i{width:14px;height:14px}
 .pv-s{font-weight:700;font-size:14.5px;white-space:nowrap}
-.pv-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pv-nt{display:flex;align-items:center;gap:6px;min-width:0}
+.pv-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .pv-w{color:var(--fg2);font-weight:700;font-size:14px}
 .pv-cardio{display:flex;align-items:center;gap:8px;font-size:14px}
 .pv-grid+.pv-cardio{padding-top:10px;border-top:1px dashed var(--hair)}
@@ -726,9 +727,8 @@ function ExMeta({ e, live }) {
 /* ================= home ================= */
 function PvRow({ e, ts }) {
   return html`<span class="pv">
-    <span>${ts.length > 0 && html`<${Tqs} ts=${ts} xs />`}</span>
     <span class="pv-s num">${scheme(e)}</span>
-    <span class="pv-n">${e.name}</span>
+    <span class="pv-nt"><span class="pv-n">${e.name}</span><${Tqs} ts=${ts} xs /></span>
     <span class="pv-w num">${e.last.w != null ? fmtNum(e.last.w) + ' kg' : ''}</span>
   </span>`;
 }
