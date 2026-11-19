@@ -404,7 +404,15 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .meal-n{font-weight:700;font-size:16.5px}
 .meal-t{font-weight:700;font-size:17px;color:var(--fg2)}
 .items{display:flex;flex-direction:column;gap:5px}
-.items li{display:grid;grid-template-columns:5.4em 14px minmax(0,1fr);gap:6px;align-items:baseline;font-size:15px;line-height:1.35}
+.items li{display:grid;grid-template-columns:5em minmax(0,1fr);gap:8px;align-items:baseline;font-size:15px;line-height:1.35}
+/* tela da dieta em linha do tempo: horário | bolinha + linha | refeição */
+.meals.tl{gap:0}
+.tl-row{display:grid;grid-template-columns:3.2em 16px minmax(0,1fr);column-gap:10px}
+.tl-time{font-weight:800;font-size:16px;padding-top:12px}
+.tl-dot{position:relative;display:flex;justify-content:center}
+.tl-dot::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--fg);margin-top:17px;position:relative;z-index:1}
+.tl-row:not(:last-child) .tl-dot::after{content:"";position:absolute;top:32px;bottom:0;left:50%;width:2px;margin-left:-1px;background:var(--hair);border-radius:1px}
+.tl-row .meal{margin-bottom:10px;min-width:0}
 .items .q{font-weight:700;font-size:15.5px}
 .items .arr{color:var(--fg3)}
 .meal-note{font-size:13.5px;color:var(--fg2)}
@@ -1067,16 +1075,20 @@ function CardMeal({ m }) {
 function MealView({ m, edit, i, count, move }) {
   const c = useCtx();
   const [phase, swap] = useOptSwap(m);
-  return html`<div class=${'meal' + (edit ? ' tap' : '')} ...${edit ? tap(() => c.openSheet({ type: 'meal', mid: m.id })) : {}}>
-    <div class="meal-h"><span class="mp-nb"><span class="meal-n">${m.name}</span><${SwapBtn} m=${m} onSwap=${swap} /></span>${m.time && html`<span class="meal-t num">${m.time}</span>`}</div>
+  return html`<div class="tl-row">
+    <span class="tl-time num">${m.time || ''}</span>
+    <span class="tl-dot" aria-hidden="true"></span>
+    <div class=${'meal' + (edit ? ' tap' : '')} ...${edit ? tap(() => c.openSheet({ type: 'meal', mid: m.id })) : {}}>
+    <div class="meal-h"><span class="mp-nb"><span class="meal-n">${m.name}</span><${SwapBtn} m=${m} onSwap=${swap} /></span></div>
     <div class=${'opt-anim' + (phase ? ' ' + phase : '')}>
-      <ul class="items">${mealItems(m).map((it) => html`<li key=${it.id}><span class="q num">${it.q}</span><span class="arr" aria-hidden="true">→</span><span>${it.f}</span></li>`)}</ul>
+      <ul class="items">${mealItems(m).map((it) => html`<li key=${it.id}><span class="q num">${it.q}</span><span>${it.f}</span></li>`)}</ul>
     </div>
     ${m.note && html`<p class="meal-note">${m.note}</p>`}
     ${edit && html`<div class="row" onClick=${(e) => e.stopPropagation()}>
       <button class="ib" aria-label="Mover para cima" disabled=${i === 0} onClick=${() => move(i, -1)}>${I.upc()}</button>
       <button class="ib" aria-label="Mover para baixo" disabled=${i === count - 1} onClick=${() => move(i, 1)}>${I.down()}</button>
     </div>`}
+    </div>
   </div>`;
 }
 
@@ -1913,7 +1925,7 @@ function DietScreen() {
       </div>
       ${edit && html`<button type="button" class="ib ex-edit" aria-label="Editar nome da dieta" onClick=${() => c.openSheet({ type: 'dietname' })}>${I.edit()}</button>`}
     </header>
-    <div class="meals">
+    <div class="meals tl">
       ${d.meals.map((m, i) => html`<${MealView} key=${m.id} m=${m} edit=${edit} i=${i} count=${d.meals.length} move=${move} />`)}
     </div>
     ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'meal' })}>${I.plus()} Adicionar refeição</button>`}
