@@ -277,7 +277,7 @@ ul{list-style:none}
 .sc-in{display:inline-flex;align-items:center;gap:6px;animation:chipIn .35s cubic-bezier(.2,.8,.2,1)}
 @keyframes chipPop{0%{transform:scale(.9)}55%{transform:scale(1.06)}100%{transform:none}}
 @keyframes chipIn{from{opacity:0;transform:translateY(5px)}}
-.stats.sess-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.stats.sess-stats{grid-template-columns:minmax(0,1fr)}
 
 /* ---------- sheets ---------- */
 .scrim{position:fixed;inset:0;z-index:40;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;animation:fade .18s ease-out}
@@ -1209,12 +1209,9 @@ function SessionSheet({ wid }) {
   const c = useCtx(); const w = c.data.workouts.find((x) => x.id === wid); const L = liveFor(c.data, w);
   const now = useNow(!!L, 1000);
   if (!w || !L) return null;
-  const list = allEx(w);
-  const done = list.filter((e) => L.ex[e.id]).length;
   return html`<${Sheet} title="Treino em andamento">
     <div class="stats sess-stats">
       <div class="stat"><span class="eyebrow">Tempo</span><span class="num big">${fmtClock(now - L.start)}</span></div>
-      <div class="stat"><span class="eyebrow">Exercícios registrados</span><span class="num big">${done}/${list.length}</span></div>
     </div>
     <div class="sheet-actions">
       <button type="button" class="btn ghost danger" onClick=${c.askDiscard}>${I.trash()}Descartar</button>
