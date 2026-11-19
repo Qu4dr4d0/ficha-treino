@@ -718,8 +718,8 @@ function RestChip({ k, label, secs, kind = 'rest', onStart }) {
     txt = over ? '+' + fmtTime(Math.floor(-ms / 1000)) : fmtTime(Math.ceil(ms / 1000));
   }
   return html`<button type="button" class=${'rest' + (on ? ' on' : '') + (over ? ' over' : '')}
-    aria-label=${over ? 'Zerar cronômetro' : on ? 'Reiniciar contagem' : `Iniciar ${kind === 'cardio' ? 'cardio' : 'descanso'} de ${fmtTime(secs)}`}
-    onClick=${() => { if (over) { c.stopTimer(); return; } c.startTimer({ key: k, label, secs, kind }); if (onStart) onStart(); }}>${kind === 'cardio' && !on ? I.play() : I.timer()}<span>${txt}</span></button>`;
+    aria-label=${on ? 'Parar e zerar o cronômetro' : `Iniciar ${kind === 'cardio' ? 'cardio' : 'descanso'} de ${fmtTime(secs)}`}
+    onClick=${() => { if (on) { c.stopTimer(); return; } c.startTimer({ key: k, label, secs, kind }); if (onStart) onStart(); }}>${kind === 'cardio' && !on ? I.play() : I.timer()}<span>${txt}</span></button>`;
 }
 
 function ExMeta({ e, live }) {
