@@ -55,6 +55,7 @@ No Android (Chrome ou Samsung Internet): abra o endereço → menu → **Instala
 - Registro do treino do dia: carga e reps por série, com os valores da última vez já preenchidos
 - Cronômetro do treino no topo e cronômetro de descanso no botão de cada exercício (vibra e apita no fim)
 - Indicador ↑ quando é hora de subir a carga
+- Catálogo com ~600 exercícios em 13 grupos musculares (com variações de pegada e aparelho), busca sem acento enquanto digita, aviso de nome parecido e nomes próprios que entram nas sugestões
 - Legenda das técnicas, recolhida por padrão
 - Tema claro, escuro ou do sistema; cores dos cards na paleta do Google Keep
 

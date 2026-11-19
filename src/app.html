@@ -306,6 +306,15 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .item-ed{display:grid;grid-template-columns:6.4em minmax(0,1fr) 40px;gap:8px;align-items:center}
 .item-ed .ib{width:40px;height:40px}
 .day-chips .chip{height:32px;padding:0 11px;font-size:13px}
+.sugg{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg);animation:chipIn .18s ease-out}
+.sugg li+li .sugg-i{border-top:1px solid var(--hair)}
+.sugg-i{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;text-align:left;font-size:15px}
+.sugg-i:hover,.sugg-i:focus-visible{background:var(--tint)}
+.sugg-n{min-width:0}
+.sugg-g{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);flex:none}
+.similar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px;font-size:13.5px;color:var(--fg2);background:var(--tint);border-radius:12px;padding:8px 12px}
+.similar b{color:var(--fg)}
+.similar .link{margin:-6px -4px}
 .help-l{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .help{width:20px;height:20px;border-radius:50%;border:1px solid var(--hair);display:inline-grid;place-items:center;font-size:12px;font-weight:700;color:var(--fg2);line-height:1}
 .help.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
@@ -464,6 +473,219 @@ const I = {
   play: icon(['M8 5.6v12.8a.8.8 0 0 0 1.2.7l10-6.4a.8.8 0 0 0 0-1.4l-10-6.4A.8.8 0 0 0 8 5.6z'], true),
 };
 
+/* ================= catálogo de exercícios =================
+   Cada linha vira um ou mais nomes: "Puxada Alta {Pronada|Supinada}" gera
+   "Puxada Alta Pronada" e "Puxada Alta Supinada"; uma opção vazia "{|Unilateral}"
+   gera também o nome sem complemento. Nomes repetidos ficam só no primeiro grupo. */
+const CATALOG_SRC = {
+  Peito: [
+    'Supino Reto {com Barra|com Halteres|com Halteres Pegada Neutra|Máquina|Máquina Pegada Neutra|no Smith|Articulado|Pegada Aberta|Pegada Fechada|Pegada Supinada|com Pausa|com Elástico}',
+    'Supino Inclinado {com Barra|com Halteres|com Halteres Pegada Neutra|Máquina|Máquina Pegada Neutra|no Smith|Articulado|Pegada Fechada|Pegada Supinada}',
+    'Supino Declinado {com Barra|com Halteres|Máquina|no Smith|Articulado}',
+    'Supino Vertical Máquina {|Pegada Neutra|Unilateral}',
+    'Supino Unilateral {com Halter|Máquina|Inclinado com Halter}',
+    'Supino {Landmine|no Chão com Halteres|Guilhotina|Spoto|Squeeze com Halteres}',
+    'Crucifixo {Reto com Halteres|Inclinado com Halteres|Declinado com Halteres|Máquina|Máquina Unilateral|na Polia|Inclinado na Polia|Declinado na Polia|no Chão com Halteres}',
+    'Crossover {Polia Alta|Polia Média|Polia Baixa|Unilateral|Ajoelhado}',
+    'Voador (Peck Deck)',
+    'Flexão de Braço {|Inclinada|Declinada|Pegada Fechada|Pegada Aberta|com Joelhos Apoiados|Diamante|com Peso|Arqueiro|com Palmas|na Barra}',
+    'Pullover {com Halter|com Barra|com Barra W|na Polia|na Polia com Corda|Máquina}',
+    'Mergulho nas Paralelas {|Assistido|com Peso|Máquina}',
+    'Svend Press',
+  ],
+  Costas: [
+    'Puxada Alta {Pronada|Supinada|Pegada Neutra|Pegada Neutra Aberta|Pegada Neutra Fechada|Pegada Aberta|Pegada Fechada|Pegada Supinada Fechada|com Triângulo|com Barra Reta|com Corda|com Barra Romana|Unilateral|Unilateral Pegada Neutra|Unilateral Ajoelhado|por Trás da Nuca|Articulada|Articulada Pronada|Articulada Pegada Neutra|Articulada Unilateral|Máquina|Máquina Pegada Neutra}',
+    'Barra Fixa {Pronada|Supinada|Pegada Neutra|Pegada Aberta|Pegada Fechada|Pegada Mista|Assistida|Assistida Pronada|Assistida Supinada|Assistida Pegada Neutra|com Peso|Negativa|com Elástico}',
+    'Pulldown na Polia {|com Corda|com Barra Reta|com Barra W|Unilateral|Ajoelhado}',
+    'Remada Baixa {|com Triângulo|Pronada|Supinada|Pegada Aberta|Pegada Neutra|Pegada Neutra Aberta|com Barra Reta|com Barra Romana|com Corda|Unilateral|Unilateral Pegada Neutra|Máquina|Máquina Pegada Neutra}',
+    'Remada Curvada {com Barra|com Barra Pronada|com Barra Supinada|com Barra Pegada Aberta|com Halteres|com Halteres Pegada Neutra|com Halteres Pronada|no Smith|no Smith Supinada|Unilateral com Halter|na Polia}',
+    'Remada Cavalinho {|Pronada|Supinada|Pegada Neutra|Pegada Aberta|Pegada Fechada|Máquina|com Apoio no Peito|com Triângulo}',
+    'Remada Unilateral {com Halter|Máquina|Máquina Pegada Neutra|Máquina Pronada|na Polia|na Polia Ajoelhado|Articulada}',
+    'Remada Serrote',
+    'Remada Articulada {|Pronada|Supinada|Pegada Neutra|Pegada Aberta|Pegada Fechada|Unilateral|Baixa|Alta}',
+    'Remada Máquina {|Pronada|Supinada|Pegada Neutra|Pegada Aberta|Unilateral|com Apoio no Peito}',
+    'Remada no Banco Inclinado {com Halteres|com Halteres Pegada Neutra|com Halteres Pronada|com Barra}',
+    'Remada {Seal com Barra|Seal com Halteres|Pendlay|Landmine|Meadows|Kroc|Yates}',
+    'Remada Invertida {|Supinada|Pegada Neutra|no Smith|com Fita de Suspensão}',
+    'Remada Alta Aberta na Polia (Costas)',
+    'Levantamento Terra {|Sumô|com Barra Hexagonal|com Halteres|no Smith|com Déficit|Parcial (Rack Pull)|Pegada Mista}',
+    'Extensão Lombar {no Banco|no Banco com Peso|Máquina|45°}',
+    'Superman',
+  ],
+  Trapézio: [
+    'Encolhimento {com Barra|com Barra por Trás|com Halteres|Máquina|no Smith|na Polia|com Barra Hexagonal|no Banco Inclinado}',
+  ],
+  Ombros: [
+    'Desenvolvimento {com Barra|com Halteres|com Halteres Pegada Neutra|Máquina|Máquina Pegada Neutra|no Smith|Articulado|Arnold|Militar em Pé|Sentado com Barra|Sentado com Halteres|em Pé com Halteres|Unilateral com Halter|Unilateral Máquina|por Trás da Nuca|Landmine|Unilateral Landmine|com Kettlebell}',
+    'Elevação Lateral {com Halteres|na Polia|na Polia por Trás|na Polia pela Frente|Unilateral na Polia|Unilateral com Halter|Máquina|Sentado com Halteres|Inclinado com Halter|Deitado com Halter|Parcial|com Elástico}',
+    'Elevação Frontal {com Halteres|com Halteres Pegada Neutra|Alternada com Halteres|com Barra|com Barra W|com Anilha|na Polia|na Polia com Corda|Unilateral na Polia|no Banco Inclinado}',
+    'Crucifixo Inverso {|com Halteres|Máquina|na Polia|na Polia Cruzada|no Banco Inclinado|Unilateral na Polia|Sentado com Halteres}',
+    'Voador Inverso (Peck Deck Inverso)',
+    'Face Pull {|com Corda|com Corda Pegada Supinada|Sentado|com Elástico}',
+    'Remada Alta {com Barra|com Barra W|com Halteres|na Polia|na Polia com Corda|no Smith|Pegada Aberta|com Kettlebell}',
+    'Rotação Externa {na Polia|com Halter|Deitado com Halter|com Elástico}',
+    'Rotação Interna {na Polia|com Elástico}',
+    'Elevação em Y {com Halteres|na Polia|no Banco Inclinado}',
+    'Flexão Pike',
+    'Pássaro (Elevação Posterior com Halteres)',
+  ],
+  'Bíceps': [
+    'Rosca Direta {com Barra Reta|com Barra W|com Barra W Pegada Fechada|com Barra W Pegada Aberta|com Halteres|na Polia|na Polia com Barra W|na Polia com Corda|Pegada Aberta|Pegada Fechada|Máquina|no Smith|com Elástico}',
+    'Rosca Alternada {|com Halteres|Sentado|em Pé|no Banco Inclinado|com Rotação}',
+    'Rosca Martelo {|com Halteres|Alternada|Cruzada|na Polia com Corda|no Banco Scott|Sentado|no Banco Inclinado|com Barra Romana}',
+    'Rosca Scott {|com Barra W|com Barra Reta|com Halter|com Halter Unilateral|Máquina|Máquina Unilateral|na Polia|Pegada Neutra|Pegada Fechada|Pegada Aberta}',
+    'Rosca Concentrada {|com Halter|na Polia}',
+    'Rosca Inversa {com Barra|com Barra W|com Halteres|na Polia|no Banco Scott}',
+    'Rosca Inclinada com Halteres',
+    'Rosca Spider {com Barra W|com Halteres|na Polia}',
+    'Rosca {21|Bayesian na Polia|Zottman|Drag|Drag com Halteres|Unilateral na Polia|Polia Alta|Polia Alta Unilateral|Polia Baixa|Deitado na Polia|Arrastada}',
+    'Rosca Máquina {|Unilateral}',
+  ],
+  'Tríceps': [
+    'Tríceps Corda {|Unilateral|Acima da Cabeça}',
+    'Tríceps Pulley {com Barra Reta|com Barra V|com Barra W|Pegada Supinada|Unilateral|Unilateral Pegada Supinada|Unilateral Pegada Neutra}',
+    'Tríceps Francês {com Halter|com Halteres|com Barra W|na Polia|na Polia com Corda|na Polia com Barra|Unilateral com Halter|Unilateral na Polia|Sentado|Deitado|Máquina}',
+    'Tríceps Testa {com Barra W|com Barra Reta|com Halteres|com Halteres Pegada Neutra|na Polia|na Polia com Corda|Unilateral com Halter|no Banco Inclinado|no Banco Declinado}',
+    'Tríceps Coice {com Halter|na Polia|na Polia sem Pegador}',
+    'Tríceps {Máquina|Mergulho Máquina|Cruzado na Polia|Overhead na Polia com Corda|na Paralela|JM Press|Tate Press}',
+    'Mergulho no Banco {|com Peso}',
+    'Supino Pegada Fechada {com Barra|no Smith|com Halteres|Máquina}',
+  ],
+  'Antebraço': [
+    'Rosca de Punho {Pronada|Supinada|com Barra|com Halteres|na Polia|por Trás das Costas}',
+    'Caminhada do Fazendeiro',
+    'Rolo de Punho',
+    'Suspensão na Barra',
+    'Pinça com Anilhas',
+  ],
+  'Quadríceps': [
+    'Agachamento {Livre|Livre com Barra Alta|Livre com Barra Baixa|no Smith|no Smith com Pés à Frente|Hack|Hack Invertido|Hack Pés Altos|Hack Pés Baixos|Frontal|Frontal no Smith|Goblet|com Halteres|com Kettlebell|Sumô|Sumô com Halter|Sumô com Barra|Sissy|Sissy na Máquina|Pêndulo|Belt Squat|Máquina|V-Squat|Zercher|Búlgaro|Búlgaro no Smith|Búlgaro com Halteres|no Banco (Box)|com Pausa|Landmine|Unilateral (Pistol)|com Salto|Isométrico na Parede}',
+    'Leg Press {45°|45° Unilateral|45° Pés Altos|45° Pés Baixos|45° Pés Juntos|45° Pés Afastados|Horizontal|Horizontal Unilateral|Vertical|Articulado}',
+    'Cadeira Extensora {|Unilateral|com Pausa}',
+    'Afundo {|com Halteres|com Barra|no Smith|Búlgaro|Búlgaro com Halteres|Búlgaro no Smith|Reverso|Reverso com Halteres|Reverso no Smith|Lateral|Cruzado|com Kettlebell}',
+    'Passada {|com Halteres|com Barra|Reversa}',
+    'Subida no Banco {|com Halteres|com Barra}',
+  ],
+  Posterior: [
+    'Mesa Flexora {|Unilateral|com Pausa}',
+    'Cadeira Flexora {|Unilateral}',
+    'Flexora em Pé {|Unilateral}',
+    'Flexora {na Polia|com Bola Suíça|com Caneleira}',
+    'Stiff {|com Barra|com Halteres|no Smith|Unilateral|Unilateral com Halter|na Polia|com Kettlebell}',
+    'Terra Romeno {|com Barra|com Halteres|Unilateral|Unilateral com Halter|no Smith}',
+    'Good Morning {|no Smith|Sentado}',
+    'Flexão Nórdica',
+    'Glute-Ham Raise',
+  ],
+  'Glúteos': [
+    'Elevação Pélvica {|com Barra|Máquina|no Smith|Unilateral|com Halter|com Pausa|com Elástico}',
+    'Ponte de Glúteo {|com Barra|Unilateral|com Halter}',
+    'Glúteo {na Polia|Máquina|4 Apoios|4 Apoios com Caneleira|Cruzado na Polia|no Smith}',
+    'Coice {na Polia|Máquina|com Caneleira}',
+    'Cadeira Abdutora {|Inclinada à Frente|Unilateral}',
+    'Abdução de Quadril {na Polia|em Pé com Elástico|Deitado|com Caneleira}',
+    'Cadeira Adutora',
+    'Adução na Polia',
+    'Extensão de Quadril {na Polia|Máquina|no Banco}',
+    'Pull Through na Polia',
+    'Frog Pump',
+  ],
+  Panturrilha: [
+    'Panturrilha em Pé {|Máquina|no Smith|com Halter Unilateral|com Barra|no Step|Unilateral}',
+    'Panturrilha Sentado {|Máquina|com Halteres|Unilateral}',
+    'Panturrilha no Leg Press {|Horizontal|Unilateral}',
+    'Panturrilha {Burrinho|no Hack}',
+    'Tibial Anterior {|na Máquina|com Anilha}',
+  ],
+  'Abdômen': [
+    'Abdominal {Máquina|Supra|Infra|Oblíquo|Declinado|Declinado com Peso|na Polia|na Polia Ajoelhado|Oblíquo na Polia|Remador|Bicicleta|Canivete|com Anilha|no Banco|Reverso|Vela|Tesoura|Infra na Paralela|Infra no Banco|na Bola Suíça}',
+    'Prancha {Frontal|Lateral|com Peso|Dinâmica|com Toque no Ombro}',
+    'Elevação de Pernas {Suspenso na Barra|na Paralela|Deitado|Joelhos Suspenso|Joelhos na Paralela}',
+    'Roda Abdominal',
+    'Rotação Russa',
+    'Pallof Press na Polia',
+    'Dead Bug',
+    'Lenhador na Polia {|Alto para Baixo|Baixo para Alto}',
+    'Flexão Lateral de Tronco {com Halter|na Polia}',
+    'Canoa (Hollow)',
+    'Escalador',
+  ],
+  'Corpo inteiro': [
+    'Burpee',
+    'Swing com Kettlebell',
+    'Thruster {com Barra|com Halteres}',
+    'Clean {com Barra|com Halteres}',
+    'Snatch {com Barra|com Halter}',
+    'Arremesso (Clean and Jerk)',
+    'Polichinelo',
+    'Empurrar Trenó',
+    'Corda Naval',
+    'Wall Ball',
+    'Turkish Get-up',
+  ],
+};
+
+const expandPattern = (p) => {
+  const m = p.match(/\{([^}]*)\}/);
+  if (!m) return [p.replace(/\s+/g, ' ').trim()];
+  return m[1].split('|').flatMap((opt) => expandPattern(p.slice(0, m.index) + opt + p.slice(m.index + m[0].length)));
+};
+const CATALOG = (() => {
+  const seen = new Set(), out = [];
+  for (const [group, list] of Object.entries(CATALOG_SRC)) for (const pat of list) for (const name of expandPattern(pat)) {
+    const k = norm(name);
+    if (!seen.has(k)) { seen.add(k); out.push({ name, group, k }); }
+  }
+  return out;
+})();
+const CAT_MAP = new Map(CATALOG.map((x) => [x.k, x]));
+const groupOf = (name) => (CAT_MAP.get(norm(name)) || {}).group || null;
+// nomes que a pessoa já usa: treinos, histórico e os criados por ela
+const myExNames = (d) => [...new Set([...d.workouts.flatMap((w) => allEx(w).map((e) => e.name)), ...d.sessions.flatMap((s) => s.items.map((i) => i.name)), ...(d.customEx || [])])];
+function lev(a, b) {
+  if (a === b) return 0;
+  const m = a.length, n = b.length; if (!m || !n) return m || n;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+const exPool = (mine) => {
+  const ks = new Set(mine.map(norm));
+  return [...mine.map((name) => ({ name, k: norm(name), group: groupOf(name), mine: true })), ...CATALOG.filter((x) => !ks.has(x.k))];
+};
+// busca: todas as palavras digitadas precisam aparecer (sem acento nem maiúscula)
+function searchEx(q, mine, limit = 7) {
+  const tokens = q.split(/\s+/).filter(Boolean);
+  if (!tokens.length) return [];
+  const scored = [];
+  for (const x of exPool(mine)) {
+    if (x.k === q || !tokens.every((t) => x.k.includes(t))) continue;
+    const words = x.k.split(' ');
+    let score = x.mine ? 100 : 0;
+    if (x.k.startsWith(q)) score += 50;
+    score += tokens.filter((t) => words.some((w) => w.startsWith(t))).length * 10;
+    score -= x.k.length / 10;
+    scored.push([score, x]);
+  }
+  return scored.sort((a, b) => b[0] - a[0]).slice(0, limit).map((s) => s[1]);
+}
+// nome quase igual a um já conhecido (erro de digitação, acento, maiúscula)
+function similarEx(q, mine) {
+  if (q.length < 5) return null;
+  let best = null, bestD = 3;
+  for (const x of exPool(mine)) {
+    if (x.k === q) return null;
+    if (Math.abs(x.k.length - q.length) > 2) continue;
+    const dd = lev(q, x.k);
+    if (dd < bestD || (dd === bestD && best && !best.mine && x.mine)) { bestD = dd; best = x; }
+  }
+  return bestD <= 2 ? best : null;
+}
+
 /* ================= dados de exemplo ================= */
 function mkEx(name, tech, sets, min, max, w, reps, rest) { return { id: uid(), name, techs: tech ? [tech] : [], sets, min, max, last: { w, reps }, rest }; }
 const CARDIO_DESC = 'Média/Alta intensidade · caminhada, escada, bike ou elíptico';
@@ -574,7 +796,7 @@ function loadData(hot) {
   if (!d) d = seed();
   // dados salvos antes dos treinos da semana: acrescenta os dias que faltam, sem mexer no resto
   // exercícios antigos tinham uma técnica só (tech); agora é uma lista (techs)
-  d.workouts.forEach((w) => allEx(w).forEach((e) => { if (!Array.isArray(e.techs)) { e.techs = e.tech ? [e.tech] : []; delete e.tech; } }));
+  d.workouts.forEach((w) => allEx(w).forEach((e) => { if (!Array.isArray(e.techs)) { e.techs = e.tech ? [e.tech] : []; delete e.tech; } if (!e.group) e.group = groupOf(e.name); }));
   if ((d.seedRev || 1) < SEED_REV) {
     const have = new Set(d.workouts.map((w) => norm(w.day).slice(0, 3)));
     weekWorkouts().forEach((w) => { if (!have.has(norm(w.day).slice(0, 3))) d.workouts.push(w); });
@@ -1223,6 +1445,24 @@ function Sheet({ title, children }) {
   </div>`;
 }
 
+function ExNameInput({ value, mine, onChange }) {
+  const [focus, setFocus] = useState(false);
+  const q = norm(value);
+  const sugg = focus ? searchEx(q, mine) : [];
+  const similar = !focus ? similarEx(q, mine) : null;
+  const pick = (name) => { onChange(name); setFocus(false); document.getElementById('ex-name')?.blur(); };
+  return html`
+    <input id="ex-name" class="txt" autocomplete="off" autocapitalize="words" role="combobox" aria-expanded=${sugg.length > 0} aria-controls="ex-sugg"
+      placeholder="Busque ou digite: supino, puxada, rosca…" value=${value}
+      onInput=${(ev) => onChange(ev.target.value)} onFocus=${() => setFocus(true)} onBlur=${() => setTimeout(() => setFocus(false), 150)}
+      onKeyDown=${(ev) => { if (ev.key === 'Enter' && sugg[0]) { ev.preventDefault(); pick(sugg[0].name); } if (ev.key === 'Escape') setFocus(false); }} />
+    ${sugg.length > 0 && html`<ul class="sugg" id="ex-sugg" role="listbox">${sugg.map((x) => html`<li key=${x.k}>
+      <button type="button" class="sugg-i" role="option" onPointerDown=${(ev) => ev.preventDefault()} onClick=${() => pick(x.name)}>
+        <span class="sugg-n">${x.name}</span>${x.mine ? html`<span class="tag">seu</span>` : x.group && html`<span class="sugg-g">${x.group}</span>`}
+      </button></li>`)}</ul>`}
+    ${similar && html`<div class="similar" role="status"><span>Você quis dizer <b>${similar.name}</b>?</span><button type="button" class="link" onClick=${() => onChange(similar.name)}>Usar esse nome</button></div>`}`;
+}
+
 function ExerciseSheet({ wid, eid, section }) {
   const c = useCtx();
   const w = c.data.workouts.find((x) => x.id === wid);
@@ -1239,16 +1479,21 @@ function ExerciseSheet({ wid, eid, section }) {
   const S = (k, v) => setF((p) => ({ ...p, [k]: v }));
   const setRep = (i, v) => setF((p) => { const reps = Array.from({ length: p.sets }, (_, j) => p.last.reps[j] ?? null); reps[i] = v; return { ...p, last: { ...p.last, reps } }; });
   const toggleTech = (id) => setF((p) => ({ ...p, techs: p.techs.includes(id) ? p.techs.filter((x) => x !== id) : [...p.techs, id] }));
-  const names = [...new Set(c.data.workouts.flatMap((x) => allEx(x).map((e) => e.name)))].sort();
+  const mine = myExNames(c.data);
   const save = () => {
     const name = f.name.trim();
     if (!name) { setErr('Dê um nome ao exercício.'); document.getElementById('ex-name')?.focus(); return; }
     if (f.sets < 1 || f.max < 1) { setErr(f.sets < 1 ? 'Coloque pelo menos 1 série.' : 'Coloque quantas repetições por série.'); return; }
     const typed = f.last.reps.slice(0, f.sets).some((r) => r != null);
     const reps = orig && !typed ? [] : Array.from({ length: f.sets }, (_, i) => f.last.reps[i] ?? 0);
-    const item = { ...f, name, last: { w: f.last.w ?? (orig ? null : 0), reps } };
+    // mesmo nome com outra grafia (maiúscula/acento) vira o nome que já existe
+    const k = norm(name);
+    const known = mine.find((n) => norm(n) === k) || (CAT_MAP.get(k) || {}).name;
+    const finalName = known || name;
+    const item = { ...f, name: finalName, group: groupOf(finalName) || f.group || null, last: { w: f.last.w ?? (orig ? null : 0), reps } };
     delete item.tech;
     c.up((d) => {
+      if (!CAT_MAP.has(norm(finalName))) { d.customEx = d.customEx || []; if (!d.customEx.some((n) => norm(n) === norm(finalName))) d.customEx.push(finalName); }
       const W = d.workouts.find((x) => x.id === wid);
       const i = W[sec].findIndex((x) => x.id === item.id);
       if (i >= 0) W[sec][i] = item; else W[sec].push(item);
@@ -1264,8 +1509,7 @@ function ExerciseSheet({ wid, eid, section }) {
   return html`<${Sheet} title=${orig ? 'Editar exercício' : sec === 'warmup' ? 'Novo aquecimento' : 'Novo exercício'}>
     <div class="field">
       <label for="ex-name">Nome do exercício</label>
-      <input id="ex-name" class="txt" list="ex-names" autocomplete="off" placeholder="Ex.: Elevação Lateral na Polia" value=${f.name} onInput=${(ev) => { S('name', ev.target.value); setErr(''); }} />
-      <datalist id="ex-names">${names.map((n) => html`<option value=${n} />`)}</datalist>
+      <${ExNameInput} value=${f.name} mine=${mine} onChange=${(v) => { S('name', v); setErr(''); }} />
       ${err === 'Dê um nome ao exercício.' && html`<span class="err">${err}</span>`}
     </div>
     <div class="field">
