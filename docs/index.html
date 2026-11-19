@@ -101,7 +101,10 @@ ul{list-style:none}
 .card-head .ib .i{width:20px;height:20px}
 .live-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--good)}
 .live-tag::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--good);animation:blink 1.6s ease-in-out infinite}
-.wtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-4px 0 6px;padding:0;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}
+.wtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-4px 0 6px;padding:0;}
+.wtabs.fl{-webkit-mask-image:linear-gradient(to right,transparent,#000 28px);mask-image:linear-gradient(to right,transparent,#000 28px)}
+.wtabs.fr{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}
+.wtabs.fl.fr{-webkit-mask-image:linear-gradient(to right,transparent,#000 28px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,transparent,#000 28px,#000 calc(100% - 28px),transparent)}
 .wtabs::-webkit-scrollbar{display:none}
 .wtabs{cursor:grab;-webkit-user-select:none;user-select:none}
 .wtabs.grabbing{cursor:grabbing}
@@ -974,13 +977,23 @@ function useDragScroll(dep) {
     };
     const up = (e) => { if (e.pointerId !== pid) return; pid = null; el.classList.remove('grabbing'); };
     const click = (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } };
+    // fade só nos lados em que ainda há dias escondidos
+    const edges = () => {
+      el.classList.toggle('fl', el.scrollLeft > 2);
+      el.classList.toggle('fr', el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+    };
+    edges();
+    el.addEventListener('scroll', edges, { passive: true });
+    window.addEventListener('resize', edges);
+    const ro = window.ResizeObserver ? new ResizeObserver(edges) : null;
+    if (ro) ro.observe(el);
     const wheel = (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.scrollWidth > el.clientWidth) { el.scrollLeft += e.deltaY; e.preventDefault(); } };
     el.addEventListener('pointerdown', down);
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     el.addEventListener('click', click, true);
     el.addEventListener('wheel', wheel, { passive: false });
-    return () => { el.removeEventListener('pointerdown', down); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); el.removeEventListener('click', click, true); el.removeEventListener('wheel', wheel); };
+    return () => { el.removeEventListener('pointerdown', down); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); el.removeEventListener('click', click, true); el.removeEventListener('wheel', wheel); el.removeEventListener('scroll', edges); window.removeEventListener('resize', edges); if (ro) ro.disconnect(); };
   }, [dep]);
   return ref;
 }
