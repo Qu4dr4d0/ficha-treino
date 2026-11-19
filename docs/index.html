@@ -308,6 +308,10 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .item-ed{display:grid;grid-template-columns:6.4em minmax(0,1fr) 40px;gap:8px;align-items:center}
 .item-ed .ib{width:40px;height:40px}
 .day-chips .chip{height:32px;padding:0 11px;font-size:13px}
+.help-l{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.help{width:20px;height:20px;border-radius:50%;border:1px solid var(--hair);display:inline-grid;place-items:center;font-size:12px;font-weight:700;color:var(--fg2);line-height:1}
+.help.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
+.help-t{flex-basis:100%;font-weight:500;font-size:13px;line-height:1.4;color:var(--fg2);background:var(--tint);border-radius:12px;padding:8px 12px;animation:chipIn .25s cubic-bezier(.2,.8,.2,1)}
 
 /* histórico do exercício */
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -657,6 +661,13 @@ function Stepper({ id, value, step = 1, min = 0, max = 999, unit, decimals, onCh
     ${unit && html`<span class="u">${unit}</span>`}
     <button type="button" aria-label=${'Aumentar ' + (label || '')} onClick=${() => bump(1)}>${I.plus()}</button>
   </div>`;
+}
+
+// "?" ao lado de um rótulo: toque mostra a explicação logo abaixo
+function Help({ text }) {
+  const [open, setOpen] = useState(false);
+  return html`<button type="button" class=${'help' + (open ? ' on' : '')} aria-expanded=${open} aria-label="O que é isso?" onClick=${() => setOpen(!open)}>?</button>
+    ${open && html`<span class="help-t" role="note">${text}</span>`}`;
 }
 
 function Toggle({ id, label, hint, on, onChange }) {
@@ -1158,13 +1169,12 @@ function ExerciseSheet({ wid, eid, section }) {
       </div>
     </div>
     <div class="field">
-      <label for="ex-w">Carga da última vez<span class="opt">opcional</span></label>
+      <span class="flabel help-l"><label for="ex-w">Carga da última vez</label><${Help} text="A carga que você usou da última vez neste exercício. É ela que aparece no treino (ex.: 50 kg). Ao concluir um treino, ela se atualiza sozinha." /></span>
       <${Stepper} id="ex-w" value=${f.last.w} min=${0} max=${999} unit="kg" decimals label="carga da última vez" onChange=${(v) => setF((p) => ({ ...p, last: { ...p.last, w: v } }))} />
     </div>
     <div class="field">
-      <span class="flabel">Reps feitas em cada série<span class="opt">opcional</span></span>
+      <span class="flabel help-l">Reps feitas em cada série<${Help} text="Com essa carga, quantas reps você fez em cada série. É isso que aparece como 12 · 10 · 10. Ao concluir um treino, elas se atualizam sozinhas." /></span>
       <div class="reps-in">${Array.from({ length: f.sets }, (_, i) => html`<input class="txt rep" id=${'ex-r' + i} inputmode="numeric" autocomplete="off" aria-label=${'Reps feitas na série ' + (i + 1)} placeholder=${'S' + (i + 1)} value=${fmtNum(f.last.reps[i])} onInput=${(ev) => setRep(i, parseNum(ev.target.value))} />`)}</div>
-      <span class="mut sm">Com essa carga, quantas reps você fez em cada série. É isso que aparece como 12 · 10 · 10.</span>
     </div>
     <div class="field">
       <span class="flabel">Descanso entre séries</span>
@@ -1199,8 +1209,8 @@ function CardioSheet({ wid, cid }) {
     c.closeSheet();
   };
   return html`<${Sheet} title=${orig ? 'Editar cardio' : 'Novo cardio'}>
-    <div class="field"><label for="cd-min">Duração (min)</label><div><${Stepper} id="cd-min" value=${f.min} step=${5} min=${1} max=${240} unit="min" label="duração" onChange=${(v) => setF((p) => ({ ...p, min: v }))} /></div></div>
     <div class="field"><label for="cd-desc">Descrição</label><input id="cd-desc" class="txt" autocomplete="off" placeholder="Ex.: Média/Alta intensidade, esteira inclinada" value=${f.desc} onInput=${(ev) => setF((p) => ({ ...p, desc: ev.target.value }))} /></div>
+    <div class="field"><label for="cd-min">Duração (min)</label><div><${Stepper} id="cd-min" value=${f.min} step=${5} min=${1} max=${240} unit="min" label="duração" onChange=${(v) => setF((p) => ({ ...p, min: v }))} /></div></div>
     <div class="sheet-actions">
       ${orig && html`<button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir'}</button>`}
       <button type="button" class="btn ink grow" onClick=${save}>${orig ? 'Salvar' : 'Adicionar'}</button>
@@ -1223,9 +1233,8 @@ function MetaSheet({ id, isNew }) {
   return html`<${Sheet} title=${isNew ? 'Novo treino' : 'Dados do treino'}>
     <div class="field"><label for="mt-title">Nome do treino</label><input id="mt-title" class="txt" autocomplete="off" placeholder="Ex.: Upper A + Abdômen" value=${title} onInput=${(ev) => setTitle(ev.target.value)} /></div>
     <div class="field">
-      <label for="mt-day">Dia</label>
-      <input id="mt-day" class="txt" autocomplete="off" placeholder="Ex.: Segunda, Treino A" value=${day} onInput=${(ev) => setDay(ev.target.value)} />
-      <div class="chips day-chips">${DAYS.map((d) => html`<button type="button" class=${'chip' + (day === d ? ' sel' : '')} onClick=${() => setDay(d)}>${d}</button>`)}</div>
+      <span class="flabel">Dia</span>
+      <div class="chips day-chips">${[...DAYS, ''].map((d) => html`<button type="button" class=${'chip' + (day === d ? ' sel' : '')} onClick=${() => setDay(d)}>${d || 'Nenhum'}</button>`)}</div>
     </div>
     <div class="sheet-actions">
       <button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir treino'}</button>
