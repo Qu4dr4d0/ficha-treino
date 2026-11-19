@@ -296,7 +296,11 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .help-l{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .help{width:20px;height:20px;border-radius:50%;border:1px solid var(--hair);display:inline-grid;place-items:center;font-size:12px;font-weight:700;color:var(--fg2);line-height:1}
 .help.on{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
-.help-t{flex-basis:100%;font-weight:500;font-size:13px;line-height:1.4;color:var(--fg2);background:var(--tint);border-radius:12px;padding:8px 12px;animation:chipIn .25s cubic-bezier(.2,.8,.2,1)}
+.help-w{flex-basis:100%;display:grid;grid-template-rows:0fr;transition:grid-template-rows .26s cubic-bezier(.2,.8,.2,1)}
+.help-w.open{grid-template-rows:1fr}
+.help-c{overflow:hidden;min-height:0}
+.help-t{display:block;font-weight:500;font-size:13px;line-height:1.4;color:var(--fg2);background:var(--tint);border-radius:12px;padding:8px 12px;opacity:0;transform:translateY(-4px);transition:opacity .2s ease,transform .26s cubic-bezier(.2,.8,.2,1)}
+.help-w.open .help-t{opacity:1;transform:none}
 
 /* histórico do exercício */
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -362,6 +366,10 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--on-ink);padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;box-shadow:var(--shadow);max-width:calc(100% - 32px);text-align:center;animation:drop .22s ease-out}
 
 @keyframes fade{from{opacity:0}}
+.scrim.closing{pointer-events:none;animation:fadeOut .22s ease-in forwards}
+.scrim.closing .sheet{animation:sink .22s cubic-bezier(.4,0,1,1) forwards}
+@keyframes fadeOut{to{opacity:0}}
+@keyframes sink{to{transform:translateY(100%)}}
 @keyframes rise{from{transform:translateY(28px)}}
 @keyframes drop{from{transform:translate(-50%,-12px);opacity:0}}
 @keyframes pulse{to{opacity:.45}}
@@ -652,7 +660,7 @@ function Stepper({ id, value, step = 1, min = 0, max = 999, unit, decimals, onCh
 function Help({ text }) {
   const [open, setOpen] = useState(false);
   return html`<button type="button" class=${'help' + (open ? ' on' : '')} aria-expanded=${open} aria-label="O que é isso?" onClick=${() => setOpen(!open)}>?</button>
-    ${open && html`<span class="help-t" role="note">${text}</span>`}`;
+    <span class=${'help-w' + (open ? ' open' : '')} aria-hidden=${!open}><span class="help-c"><span class="help-t" role="note">${text}</span></span></span>`;
 }
 
 function Toggle({ id, label, hint, on, onChange }) {
@@ -1084,7 +1092,7 @@ function Sheet({ title, children }) {
     document.body.classList.add('lock');
     return () => { window.removeEventListener('keydown', k); document.body.classList.remove('lock'); };
   }, []);
-  return html`<div class="scrim" onClick=${(e) => { if (e.target === e.currentTarget) c.closeSheet(); }}>
+  return html`<div class=${'scrim' + (c.sheetClosing ? ' closing' : '')} onClick=${(e) => { if (e.target === e.currentTarget) c.closeSheet(); }}>
     <div class="sheet" role="dialog" aria-modal="true" aria-label=${title}>
       <div class="grab"></div>
       <div class="sheet-h"><h2>${title}</h2><button class="ib" aria-label="Fechar" onClick=${c.closeSheet}>${I.close()}</button></div>
@@ -1154,11 +1162,11 @@ function ExerciseSheet({ wid, eid, section }) {
       </div>
     </div>
     <div class="field">
-      <span class="flabel help-l"><label for="ex-w">Carga da última vez</label><${Help} text="A carga que você usou da última vez neste exercício. É ela que aparece no treino (ex.: 50 kg). Ao concluir um treino, ela se atualiza sozinha." /></span>
+      <span class="flabel help-l"><label for="ex-w">Carga da última vez</label><${Help} text="Qual carga você usou da última vez que fez este exercício? Não precisa preencher se ainda não fez ou não lembra: dá para preencher depois, durante o treino." /></span>
       <${Stepper} id="ex-w" value=${f.last.w} min=${0} max=${999} unit="kg" decimals label="carga da última vez" onChange=${(v) => setF((p) => ({ ...p, last: { ...p.last, w: v } }))} />
     </div>
     <div class="field">
-      <span class="flabel help-l">Reps feitas em cada série<${Help} text="Com essa carga, quantas reps você fez em cada série. É isso que aparece como 12 · 10 · 10. Ao concluir um treino, elas se atualizam sozinhas." /></span>
+      <span class="flabel help-l">Reps feitas em cada série<${Help} text="Com a carga acima, quantas reps você conseguiu fazer em cada série? Não precisa preencher se ainda não fez ou não lembra: dá para preencher depois, durante o treino." /></span>
       <div class="reps-in">${Array.from({ length: f.sets }, (_, i) => html`<input class="txt rep" id=${'ex-r' + i} inputmode="numeric" autocomplete="off" aria-label=${'Reps feitas na série ' + (i + 1)} placeholder=${'S' + (i + 1)} value=${fmtNum(f.last.reps[i])} onInput=${(ev) => setRep(i, parseNum(ev.target.value))} />`)}</div>
     </div>
     <div class="field">
@@ -1539,7 +1547,12 @@ function App({ hot }) {
   const back = () => { setStack((s) => (s.length > 1 ? s.slice(0, -1) : s)); window.scrollTo(0, 0); };
   const home = () => { setStack([{ name: 'home' }]); window.scrollTo(0, 0); };
   const openSheet = (s) => setSheet({ ...s, n: Date.now() + Math.random() });
-  const closeSheet = () => setSheet(null);
+  const closeSheet = () => setSheet((cur) => {
+    if (!cur || cur.closing) return cur;
+    const n = cur.n;
+    setTimeout(() => setSheet((x) => (x && x.n === n ? null : x)), 220);
+    return { ...cur, closing: true };
+  });
   const startTimer = ({ key, label, secs, kind = 'rest' }) => {
     if (!secs) return;
     ensureAudio(); keepAwake(true);
@@ -1574,7 +1587,7 @@ function App({ hot }) {
     home(); toast('Treino excluído');
   };
 
-  const ctx = { data, up, route, go, back, home, openSheet, closeSheet, timer, setTimer, startTimer, stopTimer, toast, finish, askDiscard, replace, deleteWorkout };
+  const ctx = { data, up, route, go, back, home, openSheet, closeSheet, sheetClosing: !!(sheet && sheet.closing), timer, setTimer, startTimer, stopTimer, toast, finish, askDiscard, replace, deleteWorkout };
   let screen;
   if (route.name === 'workout') screen = html`<${WorkoutScreen} key=${route.id} id=${route.id} startEdit=${route.edit} />`;
   else if (route.name === 'diet') screen = html`<${DietScreen} />`;
