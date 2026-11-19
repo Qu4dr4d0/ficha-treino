@@ -1268,7 +1268,6 @@ function ColorSheet({ target, id }) {
         class=${'sw' + (k === 'default' ? ' sw-def' : '') + (cur === k ? ' sel' : '')} style=${`background:var(--c-${k})`} onClick=${() => pick(k)}>
         ${cur === k ? I.check() : k === 'default' ? I.nodrop() : null}</button>`)}
     </div>
-    <p class="mut sm">Cada cor tem uma versão para o tema claro e outra para o escuro, e troca sozinha junto com o tema.</p>
   <//>`;
 }
 
