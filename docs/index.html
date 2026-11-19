@@ -184,7 +184,9 @@ ul{list-style:none}
 .w-sub{color:var(--fg2);font-size:14px}
 .edit-hint{font-size:13px;color:var(--fg2);display:flex;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--tint)}
 .edit-hint .i{width:18px;height:18px}
-.sec{display:flex;flex-direction:column;gap:8px;border:1.5px solid var(--hair);border-radius:var(--r-card);padding:12px}
+.sec{display:flex;flex-direction:column;gap:8px}
+.sec>.sec-h{padding:0 4px}
+.sec-box{display:flex;flex-direction:column;gap:8px;border:1.5px solid var(--hair);border-radius:var(--r-card);padding:12px}
 .log-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s cubic-bezier(.2,.8,.2,1)}
 .log-wrap.open{grid-template-rows:1fr}
 .log-clip{overflow:hidden;min-height:0}
@@ -254,7 +256,7 @@ ul{list-style:none}
 .hint{font-size:12.5px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .log-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:4px}
 .prog-hint{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--good);font-weight:600}
-.cardio{border:1.5px solid var(--hair);border-radius:var(--r-card);padding:12px;display:flex;flex-direction:column;gap:10px}
+.sec-box.cardio{gap:10px}
 .cardio-row{display:flex;align-items:center;gap:10px}
 .cardio-main{flex:1;min-width:0;display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;border-radius:10px}
 .cardio-main.tap{cursor:pointer;padding:12px 14px;margin:0;background:var(--tint);border-radius:var(--r-row)}
@@ -1321,8 +1323,9 @@ function CardioBox({ w, edit }) {
   if (!edit && !w.cardio.length) return null;
   // iniciar o cronômetro do cardio já conta o cardio como feito no treino de hoje
   const started = (id) => c.up((d) => { const L = ensureLive(d, w.id); L.cardio[id] = true; });
-  return html`<section class="cardio" aria-label="Cardio">
+  return html`<section class="sec" aria-label="Cardio">
     <h2 class="sec-h">${I.pulse()}<span>Cardio</span></h2>
+    <div class="sec-box cardio">
     ${w.cardio.map((k) => html`<div class="cardio-row" key=${k.id}>
       <div class=${'cardio-main' + (edit ? ' tap' : '')} ...${edit ? tap(() => c.openSheet({ type: 'cardio', wid: w.id, cid: k.id })) : {}}>
         <span class="cardio-min num">${k.min}<small>min</small></span>
@@ -1331,6 +1334,7 @@ function CardioBox({ w, edit }) {
       ${!edit && html`<${RestChip} k=${'c-' + k.id} label=${'Cardio · ' + k.desc} secs=${k.min * 60} kind="cardio" onStart=${() => started(k.id)} />`}
     </div>`)}
     ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'cardio', wid: w.id })}>${I.plus()} Adicionar cardio</button>`}
+    </div>
   </section>`;
 }
 
@@ -1379,10 +1383,12 @@ function WorkoutScreen({ id, startEdit }) {
     if (!edit && !list.length) return null;
     return html`<section class="sec" aria-label=${label}>
       <h2 class="sec-h">${sec === 'warmup' ? I.flame() : I.dumbbell()}<span>${label}</span>${list.length > 0 && html`<span class="count num">${list.length}</span>`}</h2>
-      <${SortList} enabled=${edit} onMove=${(from, to) => move(sec, from, to)}>
-        ${list.map((e) => html`<${ExerciseRow} key=${e.id} w=${w} e=${e} edit=${edit} open=${open === e.id} onToggle=${() => toggle(e)} />`)}
-      <//>
-      ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'exercise', wid: id, section: sec })}>${I.plus()} ${sec === 'warmup' ? 'Adicionar aquecimento' : 'Adicionar exercício'}</button>`}
+      <div class="sec-box">
+        <${SortList} enabled=${edit} onMove=${(from, to) => move(sec, from, to)}>
+          ${list.map((e) => html`<${ExerciseRow} key=${e.id} w=${w} e=${e} edit=${edit} open=${open === e.id} onToggle=${() => toggle(e)} />`)}
+        <//>
+        ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'exercise', wid: id, section: sec })}>${I.plus()} ${sec === 'warmup' ? 'Adicionar aquecimento' : 'Adicionar exercício'}</button>`}
+      </div>
     </section>`;
   };
   return html`<div class="screen"><div class="wrap">
@@ -1834,7 +1840,7 @@ function DietScreen() {
       </div>`)}
     </div>
     ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'meal' })}>${I.plus()} Adicionar refeição</button>`}
-    <section class="cardio notes" aria-label="Observações">
+    <section class="sec-box notes" aria-label="Observações">
       <h2 class="sec-h"><span>Observações</span></h2>
       ${edit
         ? html`<textarea id="diet-notes" class="txt" rows="3" aria-label="Observações da dieta" value=${d.notes} onInput=${(ev) => c.up((x) => { x.diet.notes = ev.target.value; x.diet.sample = false; })}></textarea>`
