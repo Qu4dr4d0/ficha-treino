@@ -101,13 +101,17 @@ ul{list-style:none}
 .card-head .ib .i{width:20px;height:20px}
 .live-tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--good)}
 .live-tag::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--good);animation:blink 1.6s ease-in-out infinite}
-.wtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-4px 0 6px;padding:0;}
+.wtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-10px 0 0;padding:6px 0 8px;}
 .wtabs.fl{-webkit-mask-image:linear-gradient(to right,transparent,#000 28px);mask-image:linear-gradient(to right,transparent,#000 28px)}
 .wtabs.fr{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}
 .wtabs.fl.fr{-webkit-mask-image:linear-gradient(to right,transparent,#000 28px,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,transparent,#000 28px,#000 calc(100% - 28px),transparent)}
 .wtabs::-webkit-scrollbar{display:none}
 .wtabs{cursor:grab;-webkit-user-select:none;user-select:none}
 .wtabs.grabbing{cursor:grabbing}
+.wtabs>[data-hsort]{transition:transform .22s cubic-bezier(.2,.8,.2,1);-webkit-touch-callout:none;touch-action:manipulation}
+.wtabs>.dragging{position:relative;z-index:2;transition:none;box-shadow:var(--shadow);background:var(--cbg)}
+.wtabs>.dragging.sel{background:var(--ink)}
+.wtabs>.dragging.dropping{transition:transform .19s cubic-bezier(.2,.8,.2,1)}
 .wtabs.grabbing .chip-sm{pointer-events:none}
 .chip-sm{flex:none;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--hair);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .chip-sm.sel{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
@@ -740,6 +744,7 @@ function PvRow({ e }) {
 function WorkoutCard({ w }) {
   const c = useCtx(); const { data } = c;
   const tabsRef = useDragScroll(!!w);
+  useTabSort(tabsRef, !!w, (from, to) => c.up((d) => { d.workouts.splice(to, 0, d.workouts.splice(from, 1)[0]); }));
   const newW = () => {
     const id = uid();
     c.up((d) => { d.workouts.push({ id, day: '', title: 'Novo treino', color: 'default', warmup: [], main: [], cardio: [] }); d.sel = id; });
@@ -747,7 +752,7 @@ function WorkoutCard({ w }) {
     c.openSheet({ type: 'meta', id, isNew: true });
   };
   const tabs = html`<div class="wtabs" role="tablist" aria-label="Treinos" ref=${tabsRef} onClick=${(ev) => ev.stopPropagation()}>
-    ${data.workouts.map((x) => html`<button role="tab" aria-selected=${!!w && x.id === w.id} class=${'chip-sm' + (w && x.id === w.id ? ' sel' : '')} onClick=${(ev) => { ev.stopPropagation(); c.up((d) => { d.sel = x.id; }); }}>${x.day || x.title || 'Treino'}</button>`)}
+    ${data.workouts.map((x) => html`<button role="tab" key=${x.id} data-hsort="" aria-selected=${!!w && x.id === w.id} class=${'chip-sm' + (w && x.id === w.id ? ' sel' : '')} onClick=${(ev) => { ev.stopPropagation(); c.up((d) => { d.sel = x.id; }); }}>${x.day || x.title || 'Treino'}</button>`)}
     <button class="chip-sm" onClick=${(ev) => { ev.stopPropagation(); newW(); }}>${I.plus()} Novo</button>
   </div>`;
   if (!w) {
@@ -969,7 +974,7 @@ function useDragScroll(dep) {
     let x0 = 0, s0 = 0, pid = null, moved = false;
     const down = (e) => { if (e.pointerType !== 'mouse' || e.button) return; pid = e.pointerId; x0 = e.clientX; s0 = el.scrollLeft; moved = false; };
     const move = (e) => {
-      if (e.pointerId !== pid) return;
+      if (e.pointerId !== pid || el.dataset.sorting) return;
       const dx = e.clientX - x0;
       if (!moved && Math.abs(dx) > 4) { moved = true; el.classList.add('grabbing'); }
       if (moved) el.scrollLeft = s0 - dx;
@@ -995,6 +1000,80 @@ function useDragScroll(dep) {
     return () => { el.removeEventListener('pointerdown', down); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); el.removeEventListener('click', click, true); el.removeEventListener('wheel', wheel); el.removeEventListener('scroll', edges); window.removeEventListener('resize', edges); if (ro) ro.disconnect(); };
   }, [dep]);
   return ref;
+}
+
+// reordenar as abas dos treinos: segurar ~0,3 s na aba e arrastar para o lado
+function useTabSort(ref, dep, onMove) {
+  const moveRef = useRef(onMove); moveRef.current = onMove;
+  const pending = useRef(false);
+  useLayoutEffect(() => {
+    if (!pending.current || !ref.current) return;
+    pending.current = false;
+    [...ref.current.children].forEach((x) => { x.style.transition = 'none'; x.style.transform = ''; x.classList.remove('dragging', 'dropping'); void x.offsetWidth; x.style.transition = ''; });
+  });
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    let timer = null, dragged = false;
+    const begin = (chip, cx0, pid) => {
+      const items = [...el.querySelectorAll(':scope > [data-hsort]')];
+      const from = items.indexOf(chip); if (from < 0) return;
+      const box = el.getBoundingClientRect();
+      const left = (x) => x.getBoundingClientRect().left - box.left + el.scrollLeft;
+      const pos = items.map((x) => ({ l: left(x), w: x.offsetWidth }));
+      const gap = pos.length > 1 ? pos[1].l - (pos[0].l + pos[0].w) : 6;
+      const span = pos[from].w + gap;
+      const startX = cx0 - box.left + el.scrollLeft;
+      let to = from, lastX = cx0, raf = 0;
+      dragged = true; el.dataset.sorting = '1'; chip.classList.add('dragging');
+      try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
+      const layout = () => {
+        const dx = lastX - box.left + el.scrollLeft - startX;
+        chip.style.transform = `translateX(${dx}px) scale(1.06)`;
+        const center = pos[from].l + pos[from].w / 2 + dx;
+        let t = from;
+        pos.forEach((p, i) => { const mid = p.l + p.w / 2; if (i < from && center < mid) t = Math.min(t, i); if (i > from && center > mid) t = Math.max(t, i); });
+        to = t;
+        items.forEach((x, i) => { if (i === from) return; const sh = from < to && i > from && i <= to ? -span : to < from && i >= to && i < from ? span : 0; x.style.transform = sh ? `translateX(${sh}px)` : ''; });
+      };
+      // perto da borda, a faixa rola sozinha
+      const tick = () => { const edge = 36; if (lastX < box.left + edge) el.scrollLeft -= 6; else if (lastX > box.right - edge) el.scrollLeft += 6; layout(); raf = requestAnimationFrame(tick); };
+      raf = requestAnimationFrame(tick);
+      const noScroll = (e) => e.preventDefault();
+      const move = (e) => { if (e.pointerId === pid) lastX = e.clientX; };
+      const end = (e) => {
+        if (e.pointerId !== pid) return;
+        cancelAnimationFrame(raf);
+        window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end); window.removeEventListener('touchmove', noScroll);
+        let target = 0;
+        if (to > from) for (let i = from + 1; i <= to; i++) target += pos[i].w + gap;
+        if (to < from) for (let i = to; i < from; i++) target -= pos[i].w + gap;
+        chip.classList.add('dropping'); chip.style.transform = `translateX(${target}px)`;
+        setTimeout(() => {
+          delete el.dataset.sorting;
+          setTimeout(() => { dragged = false; }, 60);
+          if (to !== from) { pending.current = true; moveRef.current(from, to); }
+          else { items.forEach((x) => { x.style.transform = ''; }); chip.classList.remove('dragging', 'dropping'); }
+        }, 190);
+      };
+      window.addEventListener('pointermove', move); window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
+      window.addEventListener('touchmove', noScroll, { passive: false });
+    };
+    const down = (ev) => {
+      if (ev.button) return;
+      const chip = ev.target.closest('[data-hsort]'); if (!chip || chip.parentElement !== el) return;
+      const x0 = ev.clientX, y0 = ev.clientY, pid = ev.pointerId;
+      const stop = () => { clearTimeout(timer); window.removeEventListener('pointermove', pre); window.removeEventListener('pointerup', stop); window.removeEventListener('pointercancel', stop); };
+      const pre = (e) => { if (e.pointerId === pid && Math.hypot(e.clientX - x0, e.clientY - y0) > 6) stop(); };
+      window.addEventListener('pointermove', pre); window.addEventListener('pointerup', stop); window.addEventListener('pointercancel', stop);
+      timer = setTimeout(() => { stop(); begin(chip, x0, pid); }, 300);
+    };
+    const noClick = (e) => { if (dragged) { e.stopPropagation(); e.preventDefault(); } };
+    const noMenu = (e) => { if (e.target.closest('[data-hsort]')) e.preventDefault(); };
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('click', noClick, true);
+    el.addEventListener('contextmenu', noMenu);
+    return () => { clearTimeout(timer); el.removeEventListener('pointerdown', down); el.removeEventListener('click', noClick, true); el.removeEventListener('contextmenu', noMenu); };
+  }, [dep]);
 }
 
 function SortList({ enabled, onMove, children }) {
