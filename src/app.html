@@ -691,7 +691,7 @@ function TopBar({ title, children }) {
   </div>`;
 }
 
-function RestChip({ k, label, secs, kind = 'rest' }) {
+function RestChip({ k, label, secs, kind = 'rest', onStart }) {
   const c = useCtx();
   const on = !!(c.timer && c.timer.key === k);
   const now = useNow(on);
@@ -703,7 +703,7 @@ function RestChip({ k, label, secs, kind = 'rest' }) {
   }
   return html`<button type="button" class=${'rest' + (on ? ' on' : '') + (over ? ' over' : '')}
     aria-label=${over ? 'Zerar cronômetro' : on ? 'Reiniciar contagem' : `Iniciar ${kind === 'cardio' ? 'cardio' : 'descanso'} de ${fmtTime(secs)}`}
-    onClick=${() => (over ? c.stopTimer() : c.startTimer({ key: k, label, secs, kind }))}>${kind === 'cardio' && !on ? I.play() : I.timer()}<span>${txt}</span></button>`;
+    onClick=${() => { if (over) { c.stopTimer(); return; } c.startTimer({ key: k, label, secs, kind }); if (onStart) onStart(); }}>${kind === 'cardio' && !on ? I.play() : I.timer()}<span>${txt}</span></button>`;
 }
 
 function ExMeta({ e, live }) {
@@ -1068,9 +1068,9 @@ function SortList({ enabled, onMove, children }) {
 
 function CardioBox({ w, edit }) {
   const c = useCtx();
-  const live = liveFor(c.data, w);
   if (!edit && !w.cardio.length) return null;
-  const toggle = (id) => c.up((d) => { const L = ensureLive(d, w.id); L.cardio[id] = !L.cardio[id]; });
+  // iniciar o cronômetro do cardio já conta o cardio como feito no treino de hoje
+  const started = (id) => c.up((d) => { const L = ensureLive(d, w.id); L.cardio[id] = true; });
   return html`<section class="cardio" aria-label="Cardio">
     <h2 class="sec-h">${I.pulse()}<span>Cardio</span></h2>
     ${w.cardio.map((k) => html`<div class="cardio-row" key=${k.id}>
@@ -1078,8 +1078,7 @@ function CardioBox({ w, edit }) {
         <span class="cardio-min num">${k.min}<small>min</small></span>
         <span>${k.desc}</span>
       </div>
-      ${!edit && html`<${RestChip} k=${'c-' + k.id} label=${'Cardio · ' + k.desc} secs=${k.min * 60} kind="cardio" />
-        <button type="button" class=${'chk' + (live && live.cardio[k.id] ? ' on' : '')} aria-pressed=${!!(live && live.cardio[k.id])} aria-label="Cardio feito" onClick=${() => toggle(k.id)}>${I.check()}</button>`}
+      ${!edit && html`<${RestChip} k=${'c-' + k.id} label=${'Cardio · ' + k.desc} secs=${k.min * 60} kind="cardio" onStart=${() => started(k.id)} />`}
     </div>`)}
     ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'cardio', wid: w.id })}>${I.plus()} Adicionar cardio</button>`}
   </section>`;
