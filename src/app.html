@@ -223,10 +223,10 @@ ul{list-style:none}
 .tq-note .calc{font-family:var(--font-num);font-stretch:80%;font-weight:700;font-variant-numeric:tabular-nums}
 .log-row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px}
 .log-row.load-row{padding:8px 0;margin-bottom:4px;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair)}
-.howto{display:flex;align-items:center;justify-content:center;gap:8px;height:40px;margin-top:6px;border-radius:999px;border:1px solid var(--hair);color:var(--fg);text-decoration:none;font-weight:600;font-size:14px}
+.howto-row{margin-top:6px;padding-top:8px;border-top:1px solid var(--hair)}
+.howto{display:inline-flex;align-items:center;gap:6px;padding:4px 6px;margin-left:-6px;border-radius:8px;color:var(--fg2);text-decoration:none;font-weight:600;font-size:13px}
 .howto:hover{background:var(--tint)}
-.howto .i{width:18px;height:18px}
-.howto .i:last-child{width:14px;height:14px;color:var(--fg3)}
+.howto .yt{width:18px;height:18px;flex:none;color:var(--fg)}
 .lbl-box{display:flex;flex-direction:column;gap:1px;min-width:0}
 .log .stp{width:140px;height:36px;justify-content:space-between;border-radius:999px;background:none;border:1px solid var(--hair)}
 .log .stp button{width:34px;height:34px;border-radius:50%}
@@ -693,6 +693,7 @@ function similarEx(q, mine) {
 }
 
 // busca no YouTube com o nome do exercício (abre o app do YouTube no celular, se instalado)
+const ytLogo = () => html`<svg class="yt" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2.2 9.3c0-2.2 1.6-3.9 3.8-4.1C7.8 5.1 9.9 5 12 5s4.2.1 6 .2c2.2.2 3.8 1.9 3.8 4.1v5.4c0 2.2-1.6 3.9-3.8 4.1-1.8.1-3.9.2-6 .2s-4.2-.1-6-.2c-2.2-.2-3.8-1.9-3.8-4.1z M10 8.9v6.2l5.4-3.1z" /></svg>`;
 const howToUrl = (name) => `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} execução correta`)}`;
 
 /* ================= dados de exemplo ================= */
@@ -1052,14 +1053,14 @@ function LogPanel({ w, e, entry }) {
   });
   return html`<div class="log">
     <div class="log-row load-row">
-      <span class="lbl-box"><span class="lbl">Carga (kg)</span><span class="hint">última ${kg(e.last.w)}</span></span>
+      <span class="lbl">Última carga (kg)</span>
       <${Stepper} id=${'w-' + e.id} value=${entry.w} step=${1} decimals label="carga em kg" onChange=${(v) => set((en) => { en.w = v; })} />
     </div>
     ${entry.reps.map((r, i) => html`<div class="log-row" key=${i}>
       <span class="lbl">Série ${i + 1}</span>
       <${Stepper} id=${`r-${e.id}-${i}`} value=${r} min=${0} max=${100} label=${`reps da série ${i + 1}`} onChange=${(v) => set((en) => { en.reps[i] = v; })} />
     </div>`)}
-    <a class="howto" href=${howToUrl(e.name)} target="_blank" rel="noopener noreferrer">${I.yt()}<span>Ver como fazer</span>${I.ext()}</a>
+    <div class="howto-row"><a class="howto" href=${howToUrl(e.name)} target="_blank" rel="noopener noreferrer">${ytLogo()}<span>Como fazer</span></a></div>
   </div>`;
 }
 
