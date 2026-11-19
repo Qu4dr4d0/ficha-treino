@@ -88,6 +88,9 @@ ul{list-style:none}
 .live-tag::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--good);animation:blink 1.6s ease-in-out infinite}
 .wtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:-4px 0 6px;padding:0;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent)}
 .wtabs::-webkit-scrollbar{display:none}
+.wtabs{cursor:grab;-webkit-user-select:none;user-select:none}
+.wtabs.grabbing{cursor:grabbing}
+.wtabs.grabbing .chip-sm{pointer-events:none}
 .chip-sm{flex:none;height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--hair);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .chip-sm.sel{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
 .chip-sm .i{width:15px;height:15px}
@@ -719,13 +722,14 @@ function PvRow({ e }) {
 
 function WorkoutCard({ w }) {
   const c = useCtx(); const { data } = c;
+  const tabsRef = useDragScroll(!!w);
   const newW = () => {
     const id = uid();
     c.up((d) => { d.workouts.push({ id, day: '', title: 'Novo treino', color: 'default', warmup: [], main: [], cardio: [] }); d.sel = id; });
     c.go({ name: 'workout', id, edit: true });
     c.openSheet({ type: 'meta', id, isNew: true });
   };
-  const tabs = html`<div class="wtabs" role="tablist" aria-label="Treinos">
+  const tabs = html`<div class="wtabs" role="tablist" aria-label="Treinos" ref=${tabsRef} onClick=${(ev) => ev.stopPropagation()}>
     ${data.workouts.map((x) => html`<button role="tab" aria-selected=${!!w && x.id === w.id} class=${'chip-sm' + (w && x.id === w.id ? ' sel' : '')} onClick=${(ev) => { ev.stopPropagation(); c.up((d) => { d.sel = x.id; }); }}>${x.day || x.title || 'Treino'}</button>`)}
     <button class="chip-sm" onClick=${(ev) => { ev.stopPropagation(); newW(); }}>${I.plus()} Novo</button>
   </div>`;
@@ -937,6 +941,32 @@ function useSortable(enabled, onMove) {
     box.addEventListener('click', noClickAfterDrag, true);
     return () => { clearTimeout(timer); box.removeEventListener('pointerdown', down); box.removeEventListener('contextmenu', noMenu); box.removeEventListener('click', noClickAfterDrag, true); };
   }, [enabled]);
+  return ref;
+}
+
+// rolar uma faixa horizontal arrastando com o mouse (no celular o dedo já rola)
+function useDragScroll(dep) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    let x0 = 0, s0 = 0, pid = null, moved = false;
+    const down = (e) => { if (e.pointerType !== 'mouse' || e.button) return; pid = e.pointerId; x0 = e.clientX; s0 = el.scrollLeft; moved = false; };
+    const move = (e) => {
+      if (e.pointerId !== pid) return;
+      const dx = e.clientX - x0;
+      if (!moved && Math.abs(dx) > 4) { moved = true; el.classList.add('grabbing'); }
+      if (moved) el.scrollLeft = s0 - dx;
+    };
+    const up = (e) => { if (e.pointerId !== pid) return; pid = null; el.classList.remove('grabbing'); };
+    const click = (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } };
+    const wheel = (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.scrollWidth > el.clientWidth) { el.scrollLeft += e.deltaY; e.preventDefault(); } };
+    el.addEventListener('pointerdown', down);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    el.addEventListener('click', click, true);
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => { el.removeEventListener('pointerdown', down); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); el.removeEventListener('click', click, true); el.removeEventListener('wheel', wheel); };
+  }, [dep]);
   return ref;
 }
 
@@ -1221,6 +1251,7 @@ function MetaSheet({ id, isNew }) {
   const c = useCtx();
   const w = c.data.workouts.find((x) => x.id === id);
   const [day, setDay] = useState(w ? w.day : '');
+  const [custom, setCustom] = useState(() => !!(w && w.day && !DAYS.includes(w.day)));
   const [title, setTitle] = useState(w ? (isNew ? '' : w.title) : '');
   const [del, setDel] = useState(false);
   if (!w) return null;
@@ -1233,7 +1264,11 @@ function MetaSheet({ id, isNew }) {
     <div class="field"><label for="mt-title">Nome do treino</label><input id="mt-title" class="txt" autocomplete="off" placeholder="Ex.: Upper A + Abdômen" value=${title} onInput=${(ev) => setTitle(ev.target.value)} /></div>
     <div class="field">
       <span class="flabel">Dia</span>
-      <div class="chips day-chips">${[...DAYS, ''].map((d) => html`<button type="button" class=${'chip' + (day === d ? ' sel' : '')} onClick=${() => setDay(d)}>${d || 'Nenhum'}</button>`)}</div>
+      <div class="chips day-chips">
+        ${[...DAYS, ''].map((d) => { const on = !custom && day === d; return html`<button type="button" class=${'chip' + (on ? ' sel' : '')} aria-pressed=${on} onClick=${() => { setCustom(false); setDay(d); }}>${d || 'Nenhum'}</button>`; })}
+        <button type="button" class=${'chip' + (custom ? ' sel' : '')} aria-pressed=${custom} onClick=${() => { if (!custom) { setCustom(true); setDay(DAYS.includes(day) ? '' : day); setTimeout(() => document.getElementById('mt-day')?.focus(), 30); } }}>Personalizado</button>
+      </div>
+      ${custom && html`<input id="mt-day" class="txt" autocomplete="off" maxlength="24" aria-label="Nome personalizado do dia" placeholder="Ex.: Treino A, Dia 1" value=${day} onInput=${(ev) => setDay(ev.target.value)} />`}
     </div>
     <div class="sheet-actions">
       <button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir treino'}</button>
