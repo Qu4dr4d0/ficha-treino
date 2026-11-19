@@ -328,8 +328,15 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .sw.sel{outline:2px solid var(--fg);outline-offset:2px}
 .sw .i{width:20px;height:20px}
 .confirm-t{font-size:15px;color:var(--fg2);line-height:1.5}
-.item-ed{display:grid;grid-template-columns:6.4em minmax(0,1fr) 40px;gap:8px;align-items:center}
-.item-ed .ib{width:40px;height:40px}
+.item-ed{display:grid;grid-template-columns:6.4em minmax(0,1fr) 34px;gap:8px;align-items:center}
+.item-ed .ib{width:34px;height:34px;color:var(--fg2)}
+.item-ed .ib .i{width:18px;height:18px}
+/* campos dos editores no mesmo estilo dos controles do treino: contorno fino, sem fundo escuro */
+.sheet .txt{background:none;border-color:var(--hair)}
+.sheet textarea.txt{background:var(--tint)}
+.sheet .txt:focus{outline-color:var(--fg)}
+.item-ed .txt{height:40px;border-radius:999px;padding:0 14px}
+.item-ed .txt:first-child{font-family:var(--font-num);font-weight:700;font-stretch:85%;font-size:15.5px;text-align:center;padding:0 8px}
 .day-chips .chip{height:32px;padding:0 11px;font-size:13px}
 .sugg{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg);animation:chipIn .18s ease-out}
 .sugg li+li .sugg-i{border-top:1px solid var(--hair)}
