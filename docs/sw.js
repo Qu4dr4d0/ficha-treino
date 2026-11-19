@@ -1,6 +1,6 @@
 // Service worker do Ficha: guarda o app no aparelho para abrir sem internet.
 // A versão é gerada pelo tools/build.py a partir do conteúdo dos arquivos.
-const VERSION = '7afdb5f835';
+const VERSION = 'f6a31bcaeb';
 const SHELL = `ficha-shell-${VERSION}`;
 const FONTS = 'ficha-fonts';
 const FILES = ['./', './index.html', './manifest.webmanifest', './vendor/htm-preact-3.1.1.js', './icons/icon-192.png', './icons/icon-512.png'];

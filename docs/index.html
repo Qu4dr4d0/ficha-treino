@@ -1030,8 +1030,6 @@ function WorkoutCard({ w }) {
     <div class="card-head">
       <span class="eyebrow">Treino</span>
       ${live && html`<span class="live-tag">Em andamento</span>`}
-      <span class="grow"></span>
-      <button class="ib" aria-label="Cor do card de treino" onClick=${(ev) => { ev.stopPropagation(); c.openSheet({ type: 'color', target: 'workout', id: w.id }); }}>${I.palette()}</button>
     </div>
     ${tabs}
     <div class="card-body" ...${tap(open)}>
@@ -1103,8 +1101,6 @@ function DietCard() {
   return html`<article class="card tap-card" style=${cardStyle(d.color)} onClick=${open}>
     <div class="card-head">
       <span class="eyebrow">Dieta</span>
-      <span class="grow"></span>
-      <button class="ib" aria-label="Cor do card de dieta" onClick=${(ev) => { ev.stopPropagation(); c.openSheet({ type: 'color', target: 'diet' }); }}>${I.palette()}</button>
     </div>
     <div class="card-body" ...${tap(open)}>
       <div class="mp-list">
