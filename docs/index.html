@@ -1938,6 +1938,7 @@ function DietScreen() {
     <${TopBar}>
       <button class="ib" aria-label="Cor do card" onClick=${() => c.openSheet({ type: 'color', target: 'diet' })}>${I.palette()}</button>
       <button class=${'ib' + (edit ? ' on' : '')} aria-label=${edit ? 'Concluir edição' : 'Editar dieta'} onClick=${() => setEdit(!edit)}>${edit ? I.check() : I.edit()}</button>
+      <button class="ib" aria-label="Excluir dieta" onClick=${() => c.openSheet({ type: 'confirm', title: 'Excluir esta dieta?', text: 'Todas as refeições, opções e observações serão apagadas.', label: 'Excluir dieta', onOk: () => { c.up((x) => { x.diet = { color: x.diet.color, title: 'Plano alimentar', notes: '', meals: [], sample: false }; }); setEdit(false); c.toast('Dieta excluída'); } })}>${I.trash()}</button>
     <//>
     <header class=${'w-head' + (edit ? ' editing' : '')}>
       <div class="w-head-t">
