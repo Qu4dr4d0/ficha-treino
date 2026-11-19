@@ -109,9 +109,8 @@ ul{list-style:none}
 .pv-nt{display:flex;align-items:center;gap:6px;min-width:0}
 .pv-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .pv-w{color:var(--fg2);font-weight:700;font-size:14px}
-.pv-cardio{display:flex;align-items:center;gap:8px;font-size:14px}
-.pv-grid+.pv-cardio{padding-top:10px;border-top:1px dashed var(--hair)}
-.pv-cardio .i{width:18px;height:18px;color:var(--fg2)}
+.pv-div{grid-column:1/-1;border-top:1px dashed var(--hair);margin-top:6px}
+.pv-div+.pv-label{margin-top:2px}
 .tap-card{cursor:pointer}
 .mp-list{display:flex;flex-direction:column;gap:10px}
 .mp{display:grid;grid-template-columns:3em minmax(0,1fr);column-gap:10px;row-gap:1px;align-items:baseline}
@@ -755,11 +754,11 @@ function WorkoutCard({ w }) {
     ${tabs}
     <div class="card-body" ...${tap(open)}>
       <h2 class="card-title">${w.title || 'Treino sem nome'}</h2>
-      ${allEx(w).length > 0 && html`<div class="pv-grid">
+      ${(allEx(w).length > 0 || w.cardio.length > 0) && html`<div class="pv-grid">
         ${w.warmup.length > 0 && html`<span class="pv-label">${I.flame()}Aquecimento</span>${w.warmup.map((e) => html`<${PvRow} key=${e.id} e=${e} />`)}`}
         ${w.main.length > 0 && html`<span class="pv-label">${I.dumbbell()}Exercícios</span>${w.main.map((e) => html`<${PvRow} key=${e.id} e=${e} />`)}`}
+        ${w.cardio.length > 0 && html`${allEx(w).length > 0 && html`<span class="pv-div"></span>`}<span class="pv-label">${I.pulse()}Cardio</span>${w.cardio.map((k) => html`<span class="pv" key=${k.id}><span class="pv-s num">${k.min} min</span><span class="pv-n">${k.desc}</span></span>`)}`}
       </div>`}
-      ${w.cardio.length > 0 && html`<div class="pv-cardio">${I.pulse()}<span><b class="num">${w.cardio.map((k) => k.min + ' min').join(' + ')}</b> · ${w.cardio.map((k) => k.desc).join(', ')}</span></div>`}
       ${!allEx(w).length && !w.cardio.length && html`<p class="mut">Sem exercícios ainda. Abra para montar.</p>`}
     </div>
   </article>`;
