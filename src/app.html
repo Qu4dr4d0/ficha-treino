@@ -1708,7 +1708,7 @@ function App({ hot }) {
     stopTimer();
     toast('Treino salvo no histórico');
   };
-  const askDiscard = () => openSheet({ type: 'confirm', title: 'Descartar treino de hoje?', text: 'As séries marcadas não serão salvas no histórico.', label: 'Descartar', onOk: () => { up((d) => { d.live = null; }); stopTimer(); } });
+  const askDiscard = () => openSheet({ type: 'confirm', title: 'Descartar treino de hoje?', text: 'O tempo do treino para e as cargas e reps que você ajustou hoje não vão para o histórico.', label: 'Descartar', onOk: () => { up((d) => { d.live = null; }); stopTimer(); } });
   const replace = (d) => { setData(d); setTimer(null); home(); };
   const deleteWorkout = (id) => {
     up((d) => { d.workouts = d.workouts.filter((x) => x.id !== id); if (d.live && d.live.wid === id) d.live = null; if (d.sel === id) d.sel = d.workouts[0] ? d.workouts[0].id : null; });
