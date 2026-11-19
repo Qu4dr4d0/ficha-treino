@@ -1122,7 +1122,7 @@ function ExerciseSheet({ wid, eid, section }) {
   const orig = w && eid ? findEx(w, eid) : null;
   const sec = orig ? (w.warmup.some((x) => x.id === eid) ? 'warmup' : 'main') : section || 'main';
   const [f, setF] = useState(() => (orig ? { ...clone(orig), techs: techIds(orig) } : {
-    id: uid(), name: '', techs: [], sets: sec === 'warmup' ? 2 : 3, min: sec === 'warmup' ? 15 : 8, max: sec === 'warmup' ? 15 : 12,
+    id: uid(), name: '', techs: [], sets: 0, min: 0, max: 0,
     last: { w: 0, reps: [] }, rest: sec === 'warmup' ? 15 : c.data.settings.rest,
   }));
   const [custom, setCustom] = useState(() => !RESTS.includes(f.rest));
@@ -1136,6 +1136,7 @@ function ExerciseSheet({ wid, eid, section }) {
   const save = () => {
     const name = f.name.trim();
     if (!name) { setErr('Dê um nome ao exercício.'); document.getElementById('ex-name')?.focus(); return; }
+    if (f.sets < 1 || f.max < 1) { setErr(f.sets < 1 ? 'Coloque pelo menos 1 série.' : 'Coloque quantas repetições por série.'); return; }
     const typed = f.last.reps.slice(0, f.sets).some((r) => r != null);
     const reps = orig && !typed ? [] : Array.from({ length: f.sets }, (_, i) => f.last.reps[i] ?? 0);
     const item = { ...f, name, last: { w: f.last.w ?? (orig ? null : 0), reps } };
@@ -1158,7 +1159,7 @@ function ExerciseSheet({ wid, eid, section }) {
       <label for="ex-name">Nome do exercício</label>
       <input id="ex-name" class="txt" list="ex-names" autocomplete="off" placeholder="Ex.: Elevação Lateral na Polia" value=${f.name} onInput=${(ev) => { S('name', ev.target.value); setErr(''); }} />
       <datalist id="ex-names">${names.map((n) => html`<option value=${n} />`)}</datalist>
-      ${err && html`<span class="err">${err}</span>`}
+      ${err === 'Dê um nome ao exercício.' && html`<span class="err">${err}</span>`}
     </div>
     <div class="field">
       <span class="flabel">Técnicas avançadas<span class="opt">pode escolher mais de uma</span></span>
@@ -1167,13 +1168,13 @@ function ExerciseSheet({ wid, eid, section }) {
         ${c.data.techniques.map((x) => { const on = f.techs.includes(x.id); return html`<button type="button" class=${'chip' + (on ? ' sel' : '')} aria-pressed=${on} onClick=${() => toggleTech(x.id)}><${Tq} t=${x} />${x.name}</button>`; })}
       </div>
     </div>
-    <div class="field"><label for="ex-sets">Séries</label><${Stepper} id="ex-sets" value=${f.sets} min=${1} max=${10} label="séries" onChange=${(v) => S('sets', v)} /></div>
+    <div class="field"><label for="ex-sets">Séries</label><${Stepper} id="ex-sets" value=${f.sets} min=${0} max=${10} label="séries" onChange=${(v) => { S('sets', v); setErr(''); }} /></div>
     <div class="field">
       <span class="flabel">Repetições por série</span>
       <div class="row">
-        <${Stepper} id="ex-min" value=${f.min} min=${1} max=${100} label="reps mínimas" onChange=${(v) => setF((p) => ({ ...p, min: v, max: Math.max(v, p.max) }))} />
+        <${Stepper} id="ex-min" value=${f.min} min=${0} max=${100} label="reps mínimas" onChange=${(v) => setF((p) => ({ ...p, min: v, max: Math.max(v, p.max) }))} />
         <span class="mut">até</span>
-        <${Stepper} id="ex-max" value=${f.max} min=${1} max=${100} label="reps máximas" onChange=${(v) => setF((p) => ({ ...p, max: v, min: Math.min(v, p.min) }))} />
+        <${Stepper} id="ex-max" value=${f.max} min=${0} max=${100} label="reps máximas" onChange=${(v) => setF((p) => ({ ...p, max: v, min: Math.min(v, p.min) }))} />
       </div>
     </div>
     <div class="field">
@@ -1192,6 +1193,7 @@ function ExerciseSheet({ wid, eid, section }) {
       </div>
       ${custom && html`<div class="row rest-custom"><${Stepper} id="ex-rest" value=${f.rest} step=${15} min=${0} max=${900} unit="s" label="descanso em segundos" onChange=${(v) => S('rest', v)} /><span class="mut num">${fmtTime(f.rest)}</span></div>`}
     </div>
+    ${err && err !== 'Dê um nome ao exercício.' && html`<span class="err">${err}</span>`}
     <div class="sheet-actions">
       ${orig && html`<button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir'}</button>`}
       <button type="button" class="btn ink grow" onClick=${save}>${orig ? 'Salvar' : 'Adicionar ao treino'}</button>
