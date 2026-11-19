@@ -268,7 +268,7 @@ ul{list-style:none}
 
 /* ---------- sheets ---------- */
 .scrim{position:fixed;inset:0;z-index:40;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;animation:fade .18s ease-out}
-.sheet{width:100%;max-width:480px;max-height:calc(100% - 28px - env(safe-area-inset-top,0px));overflow-y:auto;overscroll-behavior:contain;background:var(--sheet);color:var(--fg);border-radius:24px 24px 0 0;padding-block:6px calc(22px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px;animation:rise .26s cubic-bezier(.2,.8,.2,1)}
+.sheet{width:100%;max-width:480px;max-height:calc(100% - 28px - env(safe-area-inset-top,0px));overflow-y:auto;overscroll-behavior:contain;background:var(--sheet);color:var(--fg);border-radius:24px 24px 0 0;padding-block:6px calc(22px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px;animation:rise .3s cubic-bezier(0,0,.2,1)}
 .grab{width:36px;height:4px;border-radius:2px;background:var(--hair);margin:4px auto 0;flex:none}
 .sheet-h{display:flex;align-items:center;gap:8px;margin-top:-8px}
 .sheet-h h2{flex:1;font-family:var(--font-num);font-stretch:86%;font-weight:800;font-size:23px;line-height:1.15;min-width:0;text-wrap:balance}
@@ -385,7 +385,7 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .scrim.closing .sheet{animation:sink .22s cubic-bezier(.4,0,1,1) forwards}
 @keyframes fadeOut{to{opacity:0}}
 @keyframes sink{to{transform:translateY(100%)}}
-@keyframes rise{from{transform:translateY(28px)}}
+@keyframes rise{from{transform:translateY(100%)}}
 @keyframes drop{from{transform:translate(-50%,-12px);opacity:0}}
 @keyframes pulse{to{opacity:.45}}
 @keyframes blink{50%{opacity:.35}}
