@@ -152,7 +152,9 @@ ul{list-style:none}
 
 /* ---------- tela do treino ---------- */
 .w-head{display:flex;flex-direction:column;gap:4px;padding:2px 0;border-radius:14px}
-.w-head.tap{padding:10px 12px;margin:0;background:var(--tint);cursor:pointer;outline:1.5px dashed var(--hair);outline-offset:-1.5px}
+.w-head.editing{flex-direction:row;align-items:flex-start;gap:8px;padding:12px 6px 12px 14px;border:1.5px solid var(--hair);border-radius:var(--r-card)}
+.w-head-t{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.w-head.editing .ex-edit{margin:0}
 .w-title{font-family:var(--font-num);font-stretch:86%;font-weight:800;font-size:31px;line-height:1.06;letter-spacing:-.01em;text-wrap:balance}
 .w-sub{color:var(--fg2);font-size:14px}
 .edit-hint{font-size:13px;color:var(--fg2);display:flex;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--tint)}
@@ -1021,9 +1023,12 @@ function WorkoutScreen({ id, startEdit }) {
       <button class=${'ib' + (edit ? ' on' : '')} aria-label=${edit ? 'Concluir edição' : 'Editar treino'} onClick=${() => { setEdit(!edit); setOpen(null); }}>${edit ? I.check() : I.edit()}</button>
       <button class="ib" aria-label="Excluir treino" onClick=${() => c.openSheet({ type: 'confirm', title: 'Excluir este treino?', text: `"${w.title || 'Treino sem nome'}" e todos os exercícios dele serão apagados. O histórico de treinos já concluídos continua salvo.`, label: 'Excluir treino', onOk: () => c.deleteWorkout(id) })}>${I.trash()}</button>
     <//>
-    <header class=${'w-head' + (edit ? ' tap' : '')} ...${edit ? tap(() => c.openSheet({ type: 'meta', id })) : {}}>
-      <span class="eyebrow">${w.day || 'Sem dia definido'}</span>
-      <h1 class="w-title">${w.title || 'Treino sem nome'}</h1>
+    <header class=${'w-head' + (edit ? ' editing' : '')}>
+      <div class="w-head-t">
+        <span class="eyebrow">${w.day || 'Sem dia definido'}</span>
+        <h1 class="w-title">${w.title || 'Treino sem nome'}</h1>
+      </div>
+      ${edit && html`<button type="button" class="ib ex-edit" aria-label="Editar nome e dia do treino" onClick=${() => c.openSheet({ type: 'meta', id })}>${I.edit()}</button>`}
     </header>
     ${section('warmup', 'Aquecimento')}
     ${section('main', 'Exercícios')}
