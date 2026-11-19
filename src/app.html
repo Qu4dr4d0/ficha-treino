@@ -812,6 +812,8 @@ function loadData(hot) {
     weekWorkouts().forEach((w) => { if (!have.has(norm(w.day).slice(0, 3))) d.workouts.push(w); });
     d.seedRev = SEED_REV;
   }
+  // a seção de aquecimento saiu: os exercícios dela passam para o começo de Exercícios
+  d.workouts.forEach((w) => { if (w.warmup && w.warmup.length) { w.main = [...w.warmup, ...w.main]; w.warmup = []; } });
   const today = norm(DOWS[new Date().getDay()]);
   const m = d.workouts.find((w) => norm(w.day).startsWith(today));
   if (m) d.sel = m.id;
@@ -993,7 +995,6 @@ function WorkoutCard({ w }) {
     <div class="card-body" ...${tap(open)}>
       <h2 class="card-title">${w.title || 'Treino sem nome'}</h2>
       ${(allEx(w).length > 0 || w.cardio.length > 0) && html`<div class="pv-grid">
-        ${w.warmup.length > 0 && html`<span class="pv-label">${I.flame()}Aquecimento</span>${w.warmup.map((e) => html`<${PvRow} key=${e.id} e=${e} />`)}`}
         ${w.main.length > 0 && html`<span class="pv-label">${I.dumbbell()}Exercícios</span>${w.main.map((e) => html`<${PvRow} key=${e.id} e=${e} />`)}`}
         ${w.cardio.length > 0 && html`${allEx(w).length > 0 && html`<span class="pv-div"></span>`}<span class="pv-label">${I.pulse()}Cardio</span>${w.cardio.map((k) => html`<span class="pv" key=${k.id}><span class="pv-s num">${k.min} min</span><span class="pv-n">${k.desc}</span></span>`)}`}
       </div>`}
@@ -1383,7 +1384,6 @@ function WorkoutScreen({ id, startEdit }) {
       </div>
       ${edit && html`<button type="button" class="ib ex-edit" aria-label="Editar nome e dia do treino" onClick=${() => c.openSheet({ type: 'meta', id })}>${I.edit()}</button>`}
     </header>
-    ${section('warmup', 'Aquecimento')}
     ${section('main', 'Exercícios')}
     <${CardioBox} w=${w} edit=${edit} />
     ${!edit && html`<${Legend} />`}
@@ -1488,7 +1488,7 @@ function ExerciseSheet({ wid, eid, section }) {
   const [del, setDel] = useState(false);
   if (!w) return null;
   const S = (k, v) => setF((p) => ({ ...p, [k]: v }));
-  const setRep = (i, v) => setF((p) => { const reps = Array.from({ length: p.sets }, (_, j) => p.last.reps[j] ?? null); reps[i] = v; return { ...p, last: { ...p.last, reps } }; });
+  const setRep = (i, v) => setF((p) => { const sets = Math.max(p.sets, i + 1); const reps = Array.from({ length: sets }, (_, j) => p.last.reps[j] ?? null); reps[i] = v; return { ...p, sets, last: { ...p.last, reps } }; });
   const toggleTech = (id) => setF((p) => ({ ...p, techs: p.techs.includes(id) ? p.techs.filter((x) => x !== id) : [...p.techs, id] }));
   const mine = myExNames(c.data);
   const save = () => {
@@ -1545,7 +1545,7 @@ function ExerciseSheet({ wid, eid, section }) {
     </div>
     <div class="field">
       <span class="flabel help-l">Reps feitas em cada série<${Help} text="Com a carga acima, quantas reps você conseguiu fazer em cada série? Não precisa preencher se ainda não fez ou não lembra: dá para preencher depois, durante o treino." /></span>
-      <div class="reps-in">${Array.from({ length: f.sets }, (_, i) => html`<input class="txt rep" id=${'ex-r' + i} inputmode="numeric" autocomplete="off" aria-label=${'Reps feitas na série ' + (i + 1)} placeholder=${'S' + (i + 1)} value=${fmtNum(f.last.reps[i])} onInput=${(ev) => setRep(i, parseNum(ev.target.value))} />`)}</div>
+      <div class="reps-in">${Array.from({ length: Math.max(f.sets, 1) }, (_, i) => html`<input class="txt rep" id=${'ex-r' + i} inputmode="numeric" autocomplete="off" aria-label=${'Reps feitas na série ' + (i + 1)} placeholder=${'S' + (i + 1)} value=${fmtNum(f.last.reps[i])} onInput=${(ev) => setRep(i, parseNum(ev.target.value))} />`)}</div>
     </div>
     <div class="field">
       <span class="flabel">Descanso entre séries</span>
@@ -1594,7 +1594,6 @@ function MetaSheet({ id, isNew }) {
   const c = useCtx();
   const w = c.data.workouts.find((x) => x.id === id);
   const [day, setDay] = useState(w ? w.day : '');
-  const [custom, setCustom] = useState(() => !!(w && w.day && !DAYS.includes(w.day)));
   const [title, setTitle] = useState(w ? (isNew ? '' : w.title) : '');
   const [del, setDel] = useState(false);
   if (!w) return null;
@@ -1608,10 +1607,8 @@ function MetaSheet({ id, isNew }) {
     <div class="field">
       <span class="flabel">Dia</span>
       <div class="chips day-chips">
-        ${[...DAYS, ''].map((d) => { const on = !custom && day === d; return html`<button type="button" class=${'chip' + (on ? ' sel' : '')} aria-pressed=${on} onClick=${() => { setCustom(false); setDay(d); }}>${d || 'Nenhum'}</button>`; })}
-        <button type="button" class=${'chip' + (custom ? ' sel' : '')} aria-pressed=${custom} onClick=${() => { if (!custom) { setCustom(true); setDay(DAYS.includes(day) ? '' : day); setTimeout(() => document.getElementById('mt-day')?.focus(), 30); } }}>Personalizado</button>
+        ${DAYS.map((d) => { const on = day === d; return html`<button type="button" class=${'chip' + (on ? ' sel' : '')} aria-pressed=${on} onClick=${() => setDay(on ? '' : d)}>${d}</button>`; })}
       </div>
-      ${custom && html`<input id="mt-day" class="txt" autocomplete="off" maxlength="24" aria-label="Nome personalizado do dia" placeholder="Ex.: Treino A, Dia 1" value=${day} onInput=${(ev) => setDay(ev.target.value)} />`}
     </div>
     <div class="sheet-actions">
       <button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir treino'}</button>
