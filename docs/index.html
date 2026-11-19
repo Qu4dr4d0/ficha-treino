@@ -131,11 +131,15 @@ ul{list-style:none}
 .pv-div{grid-column:1/-1;border-top:1px dashed var(--hair);margin-top:6px}
 .pv-div+.pv-label{margin-top:2px}
 .tap-card{cursor:pointer}
-.mp-list{display:flex;flex-direction:column;gap:10px}
-.mp{display:grid;grid-template-columns:3em minmax(0,1fr);column-gap:10px;row-gap:1px;align-items:baseline}
-.mp-t{font-weight:700;color:var(--fg2);font-size:14.5px}
-.mp-n{font-weight:600}
-.mp-i{grid-column:2;font-size:13px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-list{display:flex;flex-direction:column;gap:14px}
+.mp{display:flex;flex-direction:column;gap:2px}
+.mp+.mp{padding-top:14px;border-top:1px dashed var(--hair)}
+.mp-t{font-weight:700;color:var(--fg2);font-size:13px;letter-spacing:.02em}
+.mp-n{font-weight:700;font-size:15.5px}
+.mp-items{display:flex;flex-direction:column;gap:2px;margin-top:4px}
+.mp-items li{display:grid;grid-template-columns:4.8em minmax(0,1fr);gap:8px;align-items:baseline;font-size:14px}
+.mp-q{font-weight:700;font-size:14px}
+.mp-f{min-width:0;overflow-wrap:anywhere}
 
 /* ---------- botões e controles ---------- */
 .btn{height:44px;padding:0 18px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:15px;white-space:nowrap;transition:transform .1s}
@@ -1026,16 +1030,15 @@ function DietCard() {
   return html`<article class="card tap-card" style=${cardStyle(d.color)} onClick=${open}>
     <div class="card-head">
       <span class="eyebrow">Dieta</span>
-      ${d.sample && html`<span class="tag">Exemplo</span>`}
       <span class="grow"></span>
       <button class="ib" aria-label="Cor do card de dieta" onClick=${(ev) => { ev.stopPropagation(); c.openSheet({ type: 'color', target: 'diet' }); }}>${I.palette()}</button>
     </div>
     <div class="card-body" ...${tap(open)}>
       <div class="mp-list">
         ${d.meals.map((m) => html`<div class="mp" key=${m.id}>
-          <span class="mp-t num">${m.time || '—'}</span>
+          ${m.time && html`<span class="mp-t num">${m.time}</span>`}
           <span class="mp-n">${m.name}</span>
-          <span class="mp-i">${m.items.map((x) => [x.q, x.f].filter(Boolean).join(' ')).join(' · ')}</span>
+          ${m.items.length > 0 && html`<ul class="mp-items">${m.items.map((x) => html`<li key=${x.id}><span class="mp-q num">${x.q}</span><span class="mp-f">${x.f}</span></li>`)}</ul>`}
         </div>`)}
       </div>
       ${!d.meals.length && html`<p class="mut">Nenhuma refeição ainda.</p>`}
@@ -1425,6 +1428,16 @@ function TimerWatcher() {
   return null;
 }
 
+function DietNameSheet() {
+  const c = useCtx();
+  const [v, setV] = useState(c.data.diet.title || 'Plano alimentar');
+  const save = () => { c.up((d) => { d.diet.title = v.trim() || 'Plano alimentar'; d.diet.sample = false; }); c.closeSheet(); };
+  return html`<${Sheet} title="Nome da dieta">
+    <div class="field"><label for="nm-dieta">Nome</label><input id="nm-dieta" class="txt" autocomplete="off" maxlength="40" placeholder="Ex.: Dieta de cutting" value=${v} onInput=${(ev) => setV(ev.target.value)} onKeyDown=${(ev) => { if (ev.key === 'Enter') save(); }} /></div>
+    <div class="sheet-actions"><button type="button" class="btn ink grow" onClick=${save}>Salvar</button></div>
+  <//>`;
+}
+
 function NameSheet() {
   const c = useCtx();
   const [v, setV] = useState(c.data.name || '');
@@ -1807,7 +1820,7 @@ function ConfirmSheet({ title, text, label, onOk }) {
 }
 
 function SheetHost({ s }) {
-  const map = { name: NameSheet, session: SessionSheet, exercise: ExerciseSheet, cardio: CardioSheet, meta: MetaSheet, color: ColorSheet, history: HistorySheet, meal: MealSheet, tech: TechSheet, confirm: ConfirmSheet };
+  const map = { dietname: DietNameSheet, name: NameSheet, session: SessionSheet, exercise: ExerciseSheet, cardio: CardioSheet, meta: MetaSheet, color: ColorSheet, history: HistorySheet, meal: MealSheet, tech: TechSheet, confirm: ConfirmSheet };
   const C = map[s.type];
   return C ? html`<${C} key=${s.n} ...${s} />` : null;
 }
@@ -1822,12 +1835,14 @@ function DietScreen() {
       <button class="ib" aria-label="Cor do card" onClick=${() => c.openSheet({ type: 'color', target: 'diet' })}>${I.palette()}</button>
       <button class=${'ib' + (edit ? ' on' : '')} aria-label=${edit ? 'Concluir edição' : 'Editar dieta'} onClick=${() => setEdit(!edit)}>${edit ? I.check() : I.edit()}</button>
     <//>
-    <header class="w-head">
-      <span class="eyebrow">Dieta${d.sample ? ' · exemplo' : ''}</span>
-      <h1 class="w-title">Plano alimentar</h1>
-      <span class="w-sub">${d.meals.length} refeições</span>
+    <header class=${'w-head' + (edit ? ' editing' : '')}>
+      <div class="w-head-t">
+        <span class="eyebrow">Dieta</span>
+        <h1 class="w-title">${d.title || 'Plano alimentar'}</h1>
+        <span class="w-sub">${d.meals.length} refeições</span>
+      </div>
+      ${edit && html`<button type="button" class="ib ex-edit" aria-label="Editar nome da dieta" onClick=${() => c.openSheet({ type: 'dietname' })}>${I.edit()}</button>`}
     </header>
-    ${edit && html`<p class="edit-hint">${I.edit()}<span>Toque em uma refeição para editar.</span></p>`}
     <div class="meals">
       ${d.meals.map((m, i) => html`<div class=${'meal' + (edit ? ' tap' : '')} key=${m.id} ...${edit ? tap(() => c.openSheet({ type: 'meal', mid: m.id })) : {}}>
         <div class="meal-h"><span class="meal-n">${m.name}</span>${m.time && html`<span class="meal-t num">${m.time}</span>`}</div>
