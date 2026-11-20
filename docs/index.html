@@ -413,6 +413,12 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .sw-def{border-color:var(--line)}
 .sw.sel{outline:2px solid var(--fg);outline-offset:2px}
 .sw .i{width:20px;height:20px}
+.ask-scrim{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.42);display:grid;place-items:center;padding:24px;animation:fade .15s ease-out}
+.ask{width:100%;max-width:340px;background:var(--sheet);color:var(--fg);border-radius:24px;padding:22px 20px 18px;display:flex;flex-direction:column;gap:6px;box-shadow:0 14px 44px rgba(0,0,0,.35);animation:askIn .18s cubic-bezier(0,0,.2,1)}
+.ask h3{font-family:var(--font-num);font-stretch:86%;font-weight:800;font-size:21px;line-height:1.2}
+.ask p{font-size:14.5px;color:var(--fg2);line-height:1.45}
+.ask-actions{display:flex;gap:10px;margin-top:12px}
+@keyframes askIn{from{opacity:0;transform:scale(.94)}}
 .confirm-t{font-size:15px;color:var(--fg2);line-height:1.5}
 .item-ed{display:grid;grid-template-columns:6.4em minmax(0,1fr) 34px;gap:8px;align-items:center}
 .item-ed .ib{width:34px;height:34px;color:var(--fg2)}
@@ -1791,7 +1797,7 @@ function DietNameSheet() {
   const c = useCtx();
   const [v, setV] = useState(c.data.diet.title || 'Plano alimentar');
   const save = () => { c.up((d) => { d.diet.title = v.trim() || 'Plano alimentar'; d.diet.sample = false; }); c.closeSheet(); };
-  return html`<${Sheet} title="Nome da dieta">
+  return html`<${Sheet} title="Nome da dieta" watch=${v} onSave=${save}>
     <div class="field"><label for="nm-dieta">Nome</label><input id="nm-dieta" class="txt" autocomplete="off" maxlength="40" placeholder="Ex.: Dieta de cutting" value=${v} onInput=${(ev) => setV(ev.target.value)} onKeyDown=${(ev) => { if (ev.key === 'Enter') save(); }} /></div>
     <div class="sheet-actions"><button type="button" class="btn ink grow" onClick=${save}>Salvar</button></div>
   <//>`;
@@ -1801,7 +1807,7 @@ function NameSheet() {
   const c = useCtx();
   const [v, setV] = useState(c.data.name || '');
   const save = () => { c.up((d) => { d.name = v.trim(); }); c.closeSheet(); };
-  return html`<${Sheet} title="Nome da ficha">
+  return html`<${Sheet} title="Nome da ficha" watch=${v} onSave=${save}>
     <div class="field"><label for="nm-ficha">Nome</label><input id="nm-ficha" class="txt" autocomplete="off" maxlength="40" placeholder="Ex.: Ficha do João" value=${v} onInput=${(ev) => setV(ev.target.value)} onKeyDown=${(ev) => { if (ev.key === 'Enter') save(); }} /><span class="mut sm">Aparece no topo da tela inicial. Em branco, fica "Ficha".</span></div>
     <div class="sheet-actions"><button type="button" class="btn ink grow" onClick=${save}>Salvar</button></div>
   <//>`;
@@ -1855,20 +1861,37 @@ function SessionSheet({ wid }) {
 }
 
 /* ================= sheets ================= */
-function Sheet({ title, children }) {
+// Janela de baixo. Com `watch` (o estado do formulário) e `onSave`, fechar com alterações
+// (toque fora, × ou Esc) pergunta antes: sair sem salvar ou salvar.
+function Sheet({ title, children, watch, onSave }) {
   const c = useCtx();
+  const init = useRef(watch === undefined ? null : JSON.stringify(watch));
+  const [ask, setAsk] = useState(false);
+  const st = useRef({});
+  st.current = { dirty: init.current !== null && JSON.stringify(watch) !== init.current, ask };
+  const tryClose = () => { if (st.current.dirty && onSave) setAsk(true); else c.closeSheet(); };
   useEffect(() => {
-    const k = (e) => { if (e.key === 'Escape') c.closeSheet(); };
+    const k = (e) => { if (e.key !== 'Escape') return; if (st.current.ask) setAsk(false); else tryClose(); };
     window.addEventListener('keydown', k);
     document.body.classList.add('lock');
     return () => { window.removeEventListener('keydown', k); document.body.classList.remove('lock'); };
   }, []);
-  return html`<div class=${'scrim' + (c.sheetClosing ? ' closing' : '')} onClick=${(e) => { if (e.target === e.currentTarget) c.closeSheet(); }}>
+  return html`<div class=${'scrim' + (c.sheetClosing ? ' closing' : '')} onClick=${(e) => { if (e.target === e.currentTarget) tryClose(); }}>
     <div class="sheet" role="dialog" aria-modal="true" aria-label=${title}>
       <div class="grab"></div>
-      <div class="sheet-h"><h2>${title}</h2><button class="ib" aria-label="Fechar" onClick=${c.closeSheet}>${I.close()}</button></div>
+      <div class="sheet-h"><h2>${title}</h2><button class="ib" aria-label="Fechar" onClick=${tryClose}>${I.close()}</button></div>
       ${children}
     </div>
+    ${ask && html`<div class="ask-scrim" onClick=${(e) => { if (e.target === e.currentTarget) setAsk(false); }}>
+      <div class="ask" role="alertdialog" aria-modal="true" aria-labelledby="ask-t">
+        <h3 id="ask-t">Sair sem salvar?</h3>
+        <p>As alterações feitas aqui serão perdidas.</p>
+        <div class="ask-actions">
+          <button type="button" class="btn ghost danger" onClick=${() => { setAsk(false); c.closeSheet(); }}>Sair</button>
+          <button type="button" class="btn ink grow" onClick=${() => { setAsk(false); onSave(); }}>Salvar</button>
+        </div>
+      </div>
+    </div>`}
   </div>`;
 }
 
@@ -1933,7 +1956,7 @@ function ExerciseSheet({ wid, eid, section }) {
     c.up((d) => { const W = d.workouts.find((x) => x.id === wid); W.warmup = W.warmup.filter((x) => x.id !== eid); W.main = W.main.filter((x) => x.id !== eid); if (d.live) delete d.live.ex[eid]; });
     c.closeSheet(); c.toast('Exercício excluído');
   };
-  return html`<${Sheet} title=${orig ? 'Editar exercício' : sec === 'warmup' ? 'Novo aquecimento' : 'Novo exercício'}>
+  return html`<${Sheet} title=${orig ? 'Editar exercício' : sec === 'warmup' ? 'Novo aquecimento' : 'Novo exercício'} watch=${f} onSave=${save}>
     <div class="field">
       <label for="ex-name">Nome do exercício</label>
       <${ExNameInput} value=${f.name} mine=${mine} onChange=${(v) => { S('name', v); setErr(''); }} />
@@ -2030,7 +2053,7 @@ function CardioSheet({ wid, cid }) {
     onPick=${(v) => S(key, v)}
     onAdd=${(t) => c.up((d) => { if (!d[listKey].some((x) => x.toLowerCase() === t.toLowerCase())) d[listKey].push(t); })}
     onRemove=${(t) => c.up((d) => { d[listKey] = d[listKey].filter((x) => x !== t); })} />`;
-  return html`<${Sheet} title=${orig ? 'Editar cardio' : 'Novo cardio'}>
+  return html`<${Sheet} title=${orig ? 'Editar cardio' : 'Novo cardio'} watch=${f} onSave=${save}>
     <div class="field"><span class="flabel">Tipo</span>${pick('type', 'cardioTypes', 'tipo', 'Novo tipo', CARDIO_TYPES)}</div>
     <div class="field"><label for="cd-min">Duração</label><${Stepper} id="cd-min" value=${f.min} step=${5} min=${1} max=${240} unit="min" label="duração em minutos" onChange=${(v) => S('min', v)} /></div>
     <div class="field"><span class="flabel">Intensidade</span>${pick('intensity', 'cardioInts', 'intensidade', 'Nova intensidade', CARDIO_INT)}</div>
@@ -2054,7 +2077,7 @@ function MetaSheet({ id, isNew }) {
     if (!del) { setDel(true); return; }
     c.closeSheet(); c.deleteWorkout(id);
   };
-  return html`<${Sheet} title=${isNew ? 'Novo treino' : 'Dados do treino'}>
+  return html`<${Sheet} title=${isNew ? 'Novo treino' : 'Dados do treino'} watch=${[day, title]} onSave=${save}>
     <div class="field"><label for="mt-title">Nome do treino</label><input id="mt-title" class="txt" autocomplete="off" placeholder="Ex.: Upper A + Abdômen" value=${title} onInput=${(ev) => setTitle(ev.target.value)} /></div>
     <div class="field">
       <span class="flabel">Dia</span>
@@ -2174,7 +2197,7 @@ function MealSheet({ mid }) {
     c.up((d) => { d.diet.meals = d.diet.meals.filter((m) => m.id !== mid); d.diet.sample = false; });
     c.closeSheet();
   };
-  return html`<${Sheet} title=${orig ? 'Editar refeição' : 'Nova refeição'}>
+  return html`<${Sheet} title=${orig ? 'Editar refeição' : 'Nova refeição'} watch=${f} onSave=${save}>
     <div class="grid2">
       <div class="field"><label for="ml-name">Refeição</label><input id="ml-name" class="txt" autocomplete="off" placeholder="Ex.: Café da manhã" value=${f.name} onInput=${(ev) => { setF((p) => ({ ...p, name: ev.target.value })); setErr(''); }} />${err && html`<span class="err">${err}</span>`}</div>
       <div class="field"><label for="ml-time">Horário</label><input id="ml-time" class="txt" type="time" value=${f.time} onInput=${(ev) => setF((p) => ({ ...p, time: ev.target.value }))} /></div>
@@ -2222,7 +2245,7 @@ function TechSheet({ tid }) {
     c.up((d) => { d.techniques = d.techniques.filter((t) => t.id !== tid); d.workouts.forEach((w) => allEx(w).forEach((e) => { e.techs = techIds(e).filter((x) => x !== tid); })); });
     c.closeSheet();
   };
-  return html`<${Sheet} title=${orig ? 'Editar técnica' : 'Nova técnica'}>
+  return html`<${Sheet} title=${orig ? 'Editar técnica' : 'Nova técnica'} watch=${f} onSave=${save}>
     <div class="row">
       <div class="field" style="width:6.5em"><label for="tq-sym">Símbolo</label><input id="tq-sym" class="txt" maxlength="4" autocomplete="off" placeholder="f" value=${f.sym} onInput=${(ev) => { S('sym', ev.target.value); setErr(''); }} /></div>
       <div class="field grow"><label for="tq-name">Nome</label><input id="tq-name" class="txt" autocomplete="off" placeholder="Ex.: Feeder" value=${f.name} onInput=${(ev) => { S('name', ev.target.value); setErr(''); }} /></div>
@@ -2299,7 +2322,7 @@ function SuppSheet({ sid }) {
     c.up((d) => { d.diet.supps = (d.diet.supps || []).filter((x) => x.id !== sid); });
     c.closeSheet();
   };
-  return html`<${Sheet} title=${orig ? 'Editar suplemento' : 'Novo suplemento'}>
+  return html`<${Sheet} title=${orig ? 'Editar suplemento' : 'Novo suplemento'} watch=${f} onSave=${save}>
     <div class="field"><label for="sp-n">Suplemento</label><input id="sp-n" class="txt" list="sp-names" autocomplete="off" placeholder="Ex.: Creatina" value=${f.n} onInput=${(ev) => { setF((p) => ({ ...p, n: ev.target.value })); setErr(''); }} /><datalist id="sp-names">${SUPP_NAMES.map((n) => html`<option value=${n} />`)}</datalist>${err && html`<span class="err">${err}</span>`}</div>
     <div class="field"><label for="sp-q">Dose</label><input id="sp-q" class="txt" autocomplete="off" placeholder="Ex.: 5 g, 1 cápsula, 200 mg" value=${f.q} onInput=${(ev) => setF((p) => ({ ...p, q: ev.target.value }))} /></div>
     <div class="sheet-actions">
