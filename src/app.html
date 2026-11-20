@@ -772,8 +772,8 @@ function weekWorkouts() {
         mkEx('Mesa Flexora', 'feeder', 3, 8, 10, 45, [10, 8, 8], 90),
         mkEx('Cadeira Abdutora', 'feeder', 2, 12, 15, 43, [15, 15], 60),
         mkEx('Panturrilha em Pé', 'feeder', 3, 8, 10, 60, [10, 10, 10], 60),
-      ]),
-    W('Quarta', 'Cardio', 'mint', [], [], C(45, CARDIO_DESC)),
+      ], C(20, 'Bicicleta, intensidade leve')),
+    W('Quarta', 'Cardio', 'coral', [], [], C(45, CARDIO_DESC)),
     W('Quinta', 'Costas + Bíceps + Deltoide Posterior', 'fog',
       [mkEx('Puxada Alta Pegada Neutra', null, 2, 20, 20, null, [], 15)],
       [
@@ -784,7 +784,7 @@ function weekWorkouts() {
         mkEx('Crucifixo Inverso', 'feeder', 3, 12, 15, 40, [12, 12, 12], 60),
         mkEx('Rosca Scott', 'feeder', 3, 8, 10, 32, [10, 10, 9], 60),
         mkEx('Rosca Martelo', 'feeder', 2, 10, 12, 12.5, [10, 10], 60),
-      ]),
+      ], C(25, 'Escada, intensidade moderada')),
     W('Sexta', 'Peito + Ombros + Tríceps + Abdômen', 'peach',
       [mkEx('Supino Inclinado com Halteres', null, 2, 20, 20, null, [], 15)],
       [
@@ -795,7 +795,7 @@ function weekWorkouts() {
         mkEx('Tríceps Francês na Polia', 'feeder', 3, 8, 10, 45, [10, 8, 6], 60),
         mkEx('Tríceps Corda', 'feeder', 2, 10, 12, 40, [8, 10], 60),
         mkEx('Abdominal Máquina', 'feeder', 3, 10, 12, null, [], 60),
-      ]),
+      ], C(20, 'Esteira inclinada, caminhada rápida')),
     W('Sábado', 'Lower B / Posterior', 'blossom',
       [mkEx('Stiff', null, 2, 20, 20, null, [], 15)],
       [
@@ -805,8 +805,8 @@ function weekWorkouts() {
         mkEx('Afundo Búlgaro', 'feeder', 2, 8, 10, 7, [6, 6], 90),
         mkEx('Cadeira Extensora', 'feeder', 2, 10, 12, 65, [12, 10], 60),
         mkEx('Panturrilha Sentado', 'feeder', 3, 10, 12, null, [], 60),
-      ]),
-    W('Domingo', 'Cardio', 'mint', [], [], C(45, CARDIO_DESC)),
+      ], C(15, 'Bicicleta, soltar as pernas')),
+    W('Domingo', 'Cardio', 'sand', [], [], C(45, CARDIO_DESC)),
   ];
 }
 const SEED_REV = 2;
@@ -847,11 +847,16 @@ function seed() {
     sel: w.id,
     diet: {
       color: 'sage', sample: true, notes: 'Água: 3 a 4 litros por dia.',
+      supps: [
+        { id: uid(), q: '5 g', n: 'Creatina' }, { id: uid(), q: '30 g', n: 'Whey Protein' }, { id: uid(), q: '1 cápsula', n: 'Multivitamínico' },
+        { id: uid(), q: '2 cápsulas', n: 'Ômega 3' }, { id: uid(), q: '2.000 UI', n: 'Vitamina D' }, { id: uid(), q: '200 mg', n: 'Cafeína' },
+      ],
       meals: [
         { id: uid(), name: 'Café da manhã', time: '07:00', note: '', alts: [{ id: uid(), items: [it('2 fatias', 'Pão integral'), it('2 un', 'Ovos mexidos'), it('1 un', 'Maçã')] }], items: [it('3 un', 'Ovos inteiros'), it('40 g', 'Aveia em flocos'), it('1 un', 'Banana')] },
-        { id: uid(), name: 'Almoço', time: '12:30', note: '', items: [it('150 g', 'Arroz branco cozido'), it('150 g', 'Peito de frango grelhado'), it('à vontade', 'Salada de folhas')] },
-        { id: uid(), name: 'Pré-treino', time: '16:30', note: 'Cerca de 1 hora antes do treino.', items: [it('2 fatias', 'Pão integral'), it('20 g', 'Pasta de amendoim'), it('1 un', 'Banana')] },
-        { id: uid(), name: 'Jantar', time: '20:30', note: '', items: [it('150 g', 'Batata-doce cozida'), it('150 g', 'Patinho moído'), it('10 ml', 'Azeite de oliva')] },
+        { id: uid(), name: 'Almoço', time: '12:30', note: '', alts: [{ id: uid(), items: [it('200 g', 'Batata inglesa cozida'), it('150 g', 'Tilápia grelhada'), it('1 concha', 'Feijão'), it('à vontade', 'Legumes no vapor')] }, { id: uid(), items: [it('120 g', 'Macarrão integral cozido'), it('150 g', 'Patinho moído'), it('à vontade', 'Salada de folhas')] }], items: [it('150 g', 'Arroz branco cozido'), it('150 g', 'Peito de frango grelhado'), it('à vontade', 'Salada de folhas')] },
+        { id: uid(), name: 'Pré-treino', time: '16:30', note: 'Cerca de 1 hora antes do treino.', alts: [{ id: uid(), items: [it('1 un', 'Tapioca média'), it('1 colher', 'Mel'), it('30 g', 'Whey Protein')] }], items: [it('2 fatias', 'Pão integral'), it('20 g', 'Pasta de amendoim'), it('1 un', 'Banana')] },
+        { id: uid(), name: 'Jantar', time: '20:30', note: '', alts: [{ id: uid(), items: [it('150 g', 'Arroz integral cozido'), it('150 g', 'Salmão grelhado'), it('à vontade', 'Brócolis')] }], items: [it('150 g', 'Batata-doce cozida'), it('150 g', 'Patinho moído'), it('10 ml', 'Azeite de oliva')] },
+        { id: uid(), name: 'Ceia', time: '22:30', note: '', alts: [{ id: uid(), items: [it('170 g', 'Iogurte natural'), it('20 g', 'Granola')] }], items: [it('200 ml', 'Leite desnatado'), it('30 g', 'Caseína')] },
       ],
     },
     sessions,
