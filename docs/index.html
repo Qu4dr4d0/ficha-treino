@@ -321,8 +321,6 @@ ul{list-style:none}
 .log-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:4px}
 .prog-hint{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--good);font-weight:600}
 .sec-box.cardio{gap:10px}
-.cardio-head{padding-right:14px}
-.ex-top .cardio-head{padding-right:6px}
 .marq{display:block;overflow:hidden;margin-top:2px}
 /* esmaecido só do lado escondido: a máscara é 14px maior e anda junto com o texto */
 .marq.over{--fd:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);-webkit-mask:var(--fd) -14px 0/calc(100% + 14px) 100% no-repeat;mask:var(--fd) -14px 0/calc(100% + 14px) 100% no-repeat}
@@ -1703,15 +1701,15 @@ function Marquee({ children }) {
 
 const IntBars = ({ lv }) => html`<svg class="bars" viewBox="0 0 24 24" aria-hidden="true">${[[3, 14, 6], [10, 10, 10], [17, 6, 14]].map(([x, y, h], i) => html`<rect x=${x} y=${y} width="4.5" height=${h} rx="1.5" fill="currentColor" opacity=${i < lv ? 1 : 0.28} />`)}</svg>`;
 
-// tempo · intensidade (barrinhas: 1 leve, 2 moderada, 3 alta) · detalhes, tudo numa linha
+// nome em cima; intensidade (barrinhas: 1 leve, 2 moderada, 3 alta) e detalhes numa linha só.
+// A linha fica na coluna do nome, então nunca passa por baixo do timer/lápis.
 function CardioHead({ k }) {
-  return html`<div class="ex-head cardio-head">
+  return html`<div class="ex-head">
     <span class="ex-name"><span class="nm">${cardioName(k)}</span></span>
-    <${Marquee}>
-      <span class="pill scheme num">${k.min} min</span>
+    ${(k.intensity || k.details) && html`<${Marquee}>
       ${k.intensity && html`<span class="pill load">${INT_LV[k.intensity] ? html`<${IntBars} lv=${INT_LV[k.intensity]} />` : null}${k.intensity}</span>`}
       ${k.details && html`<span class="pill reps">${k.details}</span>`}
-    <//>
+    <//>`}
   </div>`;
 }
 
@@ -1734,7 +1732,10 @@ function CardioRow({ w, k, edit }) {
     <//>`;
   }
   return html`<${Swipe} dir="right" label="Feito" icon=${I.check()} onSwipe=${() => setDone(true)}>
-    <div class="ex cardio-card"><${CardioHead} k=${k} /></div>
+    <div class="ex cardio-card"><div class="ex-top">
+      <${CardioHead} k=${k} />
+      <${RestChip} k=${'c-' + k.id} label=${'Cardio · ' + cardioLabel(k)} secs=${k.min * 60} kind="cardio" />
+    </div></div>
   <//>`;
 }
 
