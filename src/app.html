@@ -374,6 +374,17 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .chip.sel{background:var(--ink);color:var(--on-ink);border-color:var(--ink)}
 .chip.sel .tq{background:var(--on-ink);color:var(--ink)}
 .chip.num{font-size:15px}
+.chip-new{position:relative;display:inline-flex}
+.chip-new>.i{position:absolute;left:50%;top:50%;width:19px;height:19px;transform:translate(-50%,-50%);color:var(--fg2);pointer-events:none}
+.chip-new:focus-within>.i{display:none}
+.chip-new>input{width:44px;padding:0;background:none;color:var(--fg);caret-color:transparent;outline:none;cursor:pointer;transition:width .18s ease}
+.chip-new>input::placeholder{color:transparent}
+.chip-new>input:focus{width:158px;padding:0 14px;caret-color:auto;border-color:var(--fg2);cursor:text}
+.chip-new>input:focus::placeholder{color:var(--fg3)}
+.chip.cust{padding:0 3px 0 0;gap:0}
+.chip-t{height:100%;padding:0 4px 0 14px}
+.chip-x{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;opacity:.7}
+.chip-x .i{width:15px;height:15px}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .reps-in{display:flex;gap:8px;flex-wrap:wrap}
@@ -819,12 +830,10 @@ const mealSel = (m) => clamp(m.sel || 0, 0, mealOpts(m).length - 1);
 const mealItems = (m) => mealOpts(m)[mealSel(m)].items;
 
 // cardio estruturado: tipo + intensidade + detalhes livres
-const CARDIO_TYPES = ['Esteira', 'Bicicleta', 'Escada', 'Elíptico', 'Caminhada', 'Corrida', 'Remo', 'Natação', 'Outro'];
-const CARDIO_INT = ['Leve', 'Moderada', 'Alta', 'Intervalado'];
+const CARDIO_TYPES = ['Esteira', 'Bicicleta', 'Escada', 'Elíptico', 'Caminhada', 'Corrida', 'Natação'];
+const CARDIO_INT = ['Leve', 'Moderada', 'Alta'];
 const cardioLabel = (k) => {
-  if (!k.type && k.desc) return k.desc;
-  const named = k.type && k.type !== 'Outro';
-  const parts = [named ? k.type : !k.details ? 'Cardio' : '', k.intensity || '', k.details || ''].filter(Boolean);
+  const parts = [k.type || (k.details ? '' : 'Cardio'), k.intensity || '', k.details || ''].filter(Boolean);
   return [...new Set(parts)].join(' · ');
 };
 const mkCardio = (min, type, intensity, details = '') => { const k = { id: uid(), min, type, intensity, details }; k.desc = cardioLabel(k); return k; };
@@ -846,7 +855,7 @@ function weekWorkouts() {
         mkEx('Cadeira Abdutora', 'feeder', 2, 12, 15, 43, [15, 15], 60),
         mkEx('Panturrilha em Pé', 'feeder', 3, 8, 10, 60, [10, 10, 10], 60),
       ], C(20, 'Bicicleta', 'Leve')),
-    W('Quarta', 'Cardio', 'coral', [], [], C(45, 'Outro', 'Alta', 'Caminhada, escada, bike ou elíptico')),
+    W('Quarta', 'Cardio', 'coral', [], [], C(45, '', 'Alta', 'Caminhada, escada, bike ou elíptico')),
     W('Quinta', 'Costas + Bíceps + Deltoide Posterior', 'fog',
       [mkEx('Puxada Alta Pegada Neutra', null, 2, 20, 20, null, [], 15)],
       [
@@ -879,7 +888,7 @@ function weekWorkouts() {
         mkEx('Cadeira Extensora', 'feeder', 2, 10, 12, 65, [12, 10], 60),
         mkEx('Panturrilha Sentado', 'feeder', 3, 10, 12, null, [], 60),
       ], C(15, 'Bicicleta', 'Leve', 'Soltar as pernas')),
-    W('Domingo', 'Cardio', 'sand', [], [], C(45, 'Outro', 'Alta', 'Caminhada, escada, bike ou elíptico')),
+    W('Domingo', 'Cardio', 'sand', [], [], C(45, '', 'Alta', 'Caminhada, escada, bike ou elíptico')),
   ];
 }
 const SEED_REV = 2;
@@ -895,7 +904,7 @@ function seed() {
     mkEx('Tríceps Corda', 'feeder', 2, 8, 10, 50, [10, 10], 60),
     mkEx('Abdominal Máquina', 'feeder', 3, 10, 15, 10, [], 60),
   ];
-  const w = { id: uid(), day: 'Segunda', title: 'Upper A + Abdômen', color: 'dusk', warmup, main, cardio: [mkCardio(30, 'Outro', 'Alta')] };
+  const w = { id: uid(), day: 'Segunda', title: 'Upper A + Abdômen', color: 'dusk', warmup, main, cardio: [mkCardio(30, '', 'Alta')] };
   const dates = ['2026-10-19', '2026-10-26', '2026-11-02', '2026-11-09', '2026-11-16'];
   const off = [-3, -2, -2, -1, 0];
   const sessions = dates.map((date, si) => ({
@@ -948,7 +957,14 @@ function loadData(hot) {
     weekWorkouts().forEach((w) => { if (!have.has(norm(w.day).slice(0, 3))) d.workouts.push(w); });
     d.seedRev = SEED_REV;
   }
-  d.workouts.forEach((w) => (w.cardio || []).forEach((k) => { if (!k.type) { k.type = 'Outro'; k.intensity = k.intensity || ''; k.details = k.desc || ''; k.desc = cardioLabel(k); } }));
+  // cardio: tipos e intensidades criados pelo usuário; cardio antigo (só texto) vira detalhes, sem tipo
+  if (!Array.isArray(d.cardioTypes)) d.cardioTypes = [];
+  if (!Array.isArray(d.cardioInts)) d.cardioInts = [];
+  d.workouts.forEach((w) => (w.cardio || []).forEach((k) => {
+    if (k.type === undefined) { k.type = ''; k.intensity = k.intensity || ''; k.details = k.desc || ''; }
+    if (k.type === 'Outro' && !d.cardioTypes.includes('Outro')) k.type = '';
+    k.desc = cardioLabel(k);
+  }));
   // a seção de aquecimento saiu: os exercícios dela passam para o começo de Exercícios
   d.workouts.forEach((w) => { if (w.warmup && w.warmup.length) { w.main = [...w.warmup, ...w.main]; w.warmup = []; } });
   const today = norm(DOWS[new Date().getDay()]);
@@ -1948,17 +1964,42 @@ function ExerciseSheet({ wid, eid, section }) {
   <//>`;
 }
 
+// Chips de escolha única com (+) no fim para criar uma opção nova.
+// O (+) já é um campo de texto (o toque abre o teclado direto, inclusive no iPhone) que se alarga ao focar.
+// A opção criada pelo usuário, quando selecionada, ganha um × para apagá-la da lista.
+function ChipPick({ base, custom, value, onPick, onAdd, onRemove, noun, ph }) {
+  const list = [...base, ...custom.filter((t) => !base.includes(t))];
+  if (value && !list.includes(value)) list.push(value);
+  const commit = (el) => {
+    const t = el.value.trim().replace(/\s+/g, ' ');
+    el.value = '';
+    if (!t) return;
+    const T = t[0].toUpperCase() + t.slice(1);
+    const has = list.find((x) => x.toLowerCase() === T.toLowerCase());
+    if (!has) onAdd(T);
+    onPick(has || T);
+  };
+  return html`<div class="chips">
+    ${list.map((t) => {
+      const on = value === t;
+      if (on && custom.includes(t)) return html`<span class="chip sel cust"><button type="button" class="chip-t" aria-pressed="true" onClick=${() => onPick('')}>${t}</button><button type="button" class="chip-x" aria-label=${'Apagar ' + noun + ' ' + t} onClick=${() => { onRemove(t); onPick(''); }}>${I.close()}</button></span>`;
+      return html`<button type="button" class=${'chip' + (on ? ' sel' : '')} aria-pressed=${on} onClick=${() => onPick(on ? '' : t)}>${t}</button>`;
+    })}
+    <span class="chip-new">${I.plus()}<input class="chip" maxlength="20" autocomplete="off" enterkeyhint="done" placeholder=${ph} aria-label=${'Criar ' + noun}
+      onKeyDown=${(ev) => { if (ev.key === 'Enter') { ev.preventDefault(); commit(ev.target); ev.target.blur(); } else if (ev.key === 'Escape') { ev.stopPropagation(); ev.target.value = ''; ev.target.blur(); } }}
+      onBlur=${(ev) => commit(ev.target)} /></span>
+  </div>`;
+}
+
 function CardioSheet({ wid, cid }) {
   const c = useCtx();
   const w = c.data.workouts.find((x) => x.id === wid);
   const orig = w && cid ? w.cardio.find((k) => k.id === cid) : null;
-  const [f, setF] = useState(() => (orig ? { type: 'Outro', intensity: '', details: '', ...clone(orig) } : { id: uid(), min: 20, type: '', intensity: '', details: '' }));
-  const [err, setErr] = useState('');
+  const [f, setF] = useState(() => (orig ? { type: '', intensity: '', details: '', ...clone(orig) } : { id: uid(), min: 20, type: '', intensity: '', details: '' }));
   const [del, setDel] = useState(false);
   if (!w) return null;
-  const S = (k, v) => { setF((p) => ({ ...p, [k]: v })); setErr(''); };
+  const S = (k, v) => setF((p) => ({ ...p, [k]: v }));
   const save = () => {
-    if (!f.type) { setErr('Escolha o tipo de cardio.'); return; }
     const item = { ...f, details: (f.details || '').trim() };
     item.desc = cardioLabel(item);
     c.up((d) => { const W = d.workouts.find((x) => x.id === wid); const i = W.cardio.findIndex((k) => k.id === item.id); if (i >= 0) W.cardio[i] = item; else W.cardio.push(item); });
@@ -1969,11 +2010,15 @@ function CardioSheet({ wid, cid }) {
     c.up((d) => { const W = d.workouts.find((x) => x.id === wid); W.cardio = W.cardio.filter((k) => k.id !== cid); });
     c.closeSheet();
   };
-  const chipRow = (list, key, allowNone) => html`<div class="chips">${list.map((t) => { const on = f[key] === t; return html`<button type="button" class=${'chip' + (on ? ' sel' : '')} aria-pressed=${on} onClick=${() => S(key, on && allowNone ? '' : t)}>${t}</button>`; })}</div>`;
+  // listas próprias do usuário: d.cardioTypes / d.cardioInts
+  const pick = (key, listKey, noun, ph, base) => html`<${ChipPick} base=${base} custom=${c.data[listKey]} value=${f[key]} noun=${noun} ph=${ph}
+    onPick=${(v) => S(key, v)}
+    onAdd=${(t) => c.up((d) => { if (!d[listKey].some((x) => x.toLowerCase() === t.toLowerCase())) d[listKey].push(t); })}
+    onRemove=${(t) => c.up((d) => { d[listKey] = d[listKey].filter((x) => x !== t); })} />`;
   return html`<${Sheet} title=${orig ? 'Editar cardio' : 'Novo cardio'}>
-    <div class="field"><span class="flabel">Tipo</span>${chipRow(CARDIO_TYPES, 'type', false)}${err && html`<span class="err">${err}</span>`}</div>
+    <div class="field"><span class="flabel">Tipo</span>${pick('type', 'cardioTypes', 'tipo', 'Novo tipo', CARDIO_TYPES)}</div>
     <div class="field"><label for="cd-min">Duração</label><${Stepper} id="cd-min" value=${f.min} step=${5} min=${1} max=${240} unit="min" label="duração em minutos" onChange=${(v) => S('min', v)} /></div>
-    <div class="field"><span class="flabel">Intensidade</span>${chipRow(CARDIO_INT, 'intensity', true)}</div>
+    <div class="field"><span class="flabel">Intensidade</span>${pick('intensity', 'cardioInts', 'intensidade', 'Nova intensidade', CARDIO_INT)}</div>
     <div class="field"><label for="cd-det">Detalhes<span class="opt">opcional</span></label><input id="cd-det" class="txt" autocomplete="off" maxlength="60" placeholder="Ex.: inclinação 8%, 6 km/h" value=${f.details} onInput=${(ev) => S('details', ev.target.value)} /></div>
     <div class="sheet-actions">
       ${orig && html`<button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir'}</button>`}
