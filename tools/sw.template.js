@@ -43,3 +43,12 @@ self.addEventListener('fetch', (e) => {
     );
   }
 });
+
+// Tocar na notificação do timer volta para o app.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    const c = list[0];
+    return c ? c.focus() : self.clients.openWindow('./');
+  }));
+});
