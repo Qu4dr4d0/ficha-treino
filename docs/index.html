@@ -322,6 +322,8 @@ ul{list-style:none}
 .prog-hint{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--good);font-weight:600}
 .sec-box.cardio{gap:10px}
 .cardio-row{display:flex;align-items:center;gap:10px}
+.cardio-card{padding:12px 10px 12px 14px}
+.cardio-card .ex-edit{margin:-6px -4px -6px 0}
 .cardio-main{flex:1;min-width:0;display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;border-radius:10px}
 .cardio-main.tap{cursor:pointer;padding:12px 14px;margin:0;background:var(--tint);border-radius:var(--r-row)}
 .cardio-min{font-weight:800;font-size:27px;line-height:1}
@@ -1632,22 +1634,43 @@ function SortList({ enabled, onMove, children }) {
   return html`<div class=${'ex-list' + (enabled ? ' sortable' : '')} ref=${ref}>${children}</div>`;
 }
 
+function CardioRow({ w, k, edit }) {
+  const c = useCtx();
+  const live = liveFor(c.data, w);
+  const done = !!(live && live.cardio && live.cardio[k.id]);
+  const setDone = (v) => c.up((d) => { const L = ensureLive(d, w.id); if (v) { L.cardio[k.id] = true; d.settings.swipeHint = true; } else delete L.cardio[k.id]; });
+  if (edit) {
+    return html`<div class="ex cardio-card editing" data-sort="">
+      <div class="cardio-row">
+        <div class="cardio-main"><span class="cardio-min num">${k.min}<small>min</small></span><span>${k.desc}</span></div>
+        <button type="button" class="ib ex-edit" aria-label=${'Editar cardio ' + k.desc} onClick=${() => c.openSheet({ type: 'cardio', wid: w.id, cid: k.id })}>${I.edit()}</button>
+      </div>
+    </div>`;
+  }
+  if (done) {
+    return html`<${Swipe} dir="left" tone="undo" label="Desfazer" icon=${I.undo()} onSwipe=${() => setDone(false)}>
+      <div class="ex ex-done"><span class="ok">${I.check()}</span><span class="nm">${k.desc}</span><span class="num sum">${k.min} min</span></div>
+    <//>`;
+  }
+  return html`<${Swipe} dir="right" label="Feito" icon=${I.check()} onSwipe=${() => setDone(true)}>
+    <div class="ex cardio-card"><div class="cardio-row">
+      <div class="cardio-main"><span class="cardio-min num">${k.min}<small>min</small></span><span>${k.desc}</span></div>
+      <${RestChip} k=${'c-' + k.id} label=${'Cardio · ' + k.desc} secs=${k.min * 60} kind="cardio" />
+    </div></div>
+  <//>`;
+}
+
 function CardioBox({ w, edit }) {
   const c = useCtx();
   if (!edit && !w.cardio.length) return null;
-  // iniciar o cronômetro do cardio já conta o cardio como feito no treino de hoje
-  const started = (id) => c.up((d) => { const L = ensureLive(d, w.id); L.cardio[id] = true; });
+  const move = (from, to) => c.up((d) => { const arr = d.workouts.find((x) => x.id === w.id).cardio; arr.splice(to, 0, arr.splice(from, 1)[0]); });
   return html`<section class="sec" aria-label="Cardio">
-    <h2 class="sec-h">${I.pulse()}<span>Cardio</span></h2>
+    <h2 class="sec-h">${I.pulse()}<span>Cardio</span>${w.cardio.length > 1 && html`<span class="count num">${w.cardio.length}</span>`}</h2>
     <div class="sec-box cardio">
-    ${w.cardio.map((k) => html`<div class="cardio-row" key=${k.id}>
-      <div class=${'cardio-main' + (edit ? ' tap' : '')} ...${edit ? tap(() => c.openSheet({ type: 'cardio', wid: w.id, cid: k.id })) : {}}>
-        <span class="cardio-min num">${k.min}<small>min</small></span>
-        <span>${k.desc}</span>
-      </div>
-      ${!edit && html`<${RestChip} k=${'c-' + k.id} label=${'Cardio · ' + k.desc} secs=${k.min * 60} kind="cardio" onStart=${() => started(k.id)} />`}
-    </div>`)}
-    ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'cardio', wid: w.id })}>${I.plus()} Adicionar cardio</button>`}
+      <${SortList} enabled=${edit} onMove=${move}>
+        ${w.cardio.map((k) => html`<${CardioRow} key=${k.id} w=${w} k=${k} edit=${edit} />`)}
+      <//>
+      ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'cardio', wid: w.id })}>${I.plus()} Adicionar cardio</button>`}
     </div>
   </section>`;
 }
