@@ -246,7 +246,8 @@ ul{list-style:none}
 .tqs{display:inline-flex;gap:4px;flex:none}
 .swipe{position:relative;border-radius:var(--r-row);touch-action:pan-y;overflow:hidden}
 .swipe-bg{position:absolute;inset:0;border-radius:var(--r-row);display:flex;align-items:center;padding:0 18px;background:var(--good);color:var(--on-good);font-weight:800;font-size:15px}
-.swipe-bg span{display:inline-flex;align-items:center;gap:8px}
+.swipe-bg span{display:inline-flex;align-items:center;gap:8px;opacity:.7;transform:scale(.92);transition:transform .16s cubic-bezier(.2,.8,.2,1.4),opacity .16s}
+.swipe.armed .swipe-bg span{opacity:1;transform:scale(1.06)}
 .swipe-bg .i{width:20px;height:20px;stroke-width:2.6}
 .swipe.left .swipe-bg{justify-content:flex-end;background:var(--fg3);color:var(--bg)}
 .swipe-fg{position:relative;border-radius:var(--r-row);background:var(--screen-bg);will-change:transform}
@@ -1286,12 +1287,15 @@ function Swipe({ dir, label, icon, tone, onSwipe, children }) {
   const dragged = useRef(false);
   const [dx, setDx] = useState(0);
   const [anim, setAnim] = useState(false);
+  const [armed, setArmed] = useState(false);
   const sign = dir === 'right' ? 1 : -1;
   const set = (v) => { dxRef.current = v; setDx(v); };
   const down = (ev) => {
     if (ev.button) return;
     if (ev.target.closest('.log, .tq-btn, input, .stp')) return;
-    st.current = { x: ev.clientX, y: ev.clientY, id: ev.pointerId, on: false, w: ref.current.offsetWidth };
+    const w = ref.current.offsetWidth;
+    // como no YouTube: o card trava num ponto, vibra e basta soltar
+    st.current = { x: ev.clientX, y: ev.clientY, id: ev.pointerId, on: false, lim: Math.min(120, w * 0.32), armed: false };
   };
   const move = (ev) => {
     const s = st.current; if (!s || ev.pointerId !== s.id) return;
@@ -1302,24 +1306,27 @@ function Swipe({ dir, label, icon, tone, onSwipe, children }) {
       s.on = true; setAnim(false);
       try { ref.current.setPointerCapture(s.id); } catch (e) {}
     }
-    const raw = sign > 0 ? Math.max(0, mx) : Math.min(0, mx);
-    set(raw);
+    const raw = Math.max(0, mx * sign);
+    // depois do ponto de trava, o card quase não anda mais (só uma resistência leve)
+    const d = raw <= s.lim ? raw : s.lim + Math.min(14, (raw - s.lim) * 0.12);
+    set(sign * d);
+    const now = raw >= s.lim;
+    if (now !== s.armed) {
+      s.armed = now; setArmed(now);
+      if (now) { try { navigator.vibrate && navigator.vibrate(12); } catch (e) {} }
+    }
   };
   const up = (ev) => {
     const s = st.current; st.current = null;
     if (!s || !s.on || ev.pointerId !== s.id) return;
     dragged.current = true; setTimeout(() => { dragged.current = false; }, 80);
-    setAnim(true);
-    if (Math.abs(dxRef.current) > Math.min(110, s.w * 0.33)) {
-      try { navigator.vibrate && navigator.vibrate(15); } catch (e) {}
-      set(sign * s.w);
-      setTimeout(() => { onSwipe(); set(0); }, 210);
-    } else set(0);
+    setAnim(true); set(0); setArmed(false);
+    if (s.armed) setTimeout(() => onSwipe(), 190);
   };
-  return html`<div class=${'swipe ' + dir + ' ' + (tone || '')} ref=${ref} onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}
+  return html`<div class=${'swipe ' + dir + ' ' + (tone || '') + (armed ? ' armed' : '')} ref=${ref} onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}
       onClickCapture=${(ev) => { if (dragged.current) { ev.stopPropagation(); ev.preventDefault(); } }}>
-    <div class="swipe-bg" style=${`opacity:${dx ? Math.min(1, Math.abs(dx) / 60) : 0}`}><span>${icon}${label}</span></div>
-    <div class="swipe-fg" style=${`transform:translateX(${dx}px);transition:${anim ? 'transform .21s cubic-bezier(.2,.8,.2,1)' : 'none'}`}>${children}</div>
+    <div class="swipe-bg" style=${`opacity:${dx ? Math.min(1, Math.abs(dx) / 50) : 0}`}><span>${icon}${label}</span></div>
+    <div class="swipe-fg" style=${`transform:translateX(${dx}px);transition:${anim ? 'transform .19s cubic-bezier(.2,.8,.2,1)' : 'none'}`}>${children}</div>
   </div>`;
 }
 
