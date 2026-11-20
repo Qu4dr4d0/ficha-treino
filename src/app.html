@@ -229,6 +229,19 @@ ul{list-style:none}
 .rest.over{background:var(--good);color:var(--on-good)}
 .rest.static{margin:0;cursor:default;height:28px;font-size:13.5px}
 .tqs{display:inline-flex;gap:4px;flex:none}
+.swipe{position:relative;border-radius:var(--r-row);touch-action:pan-y;overflow:hidden}
+.swipe-bg{position:absolute;inset:0;border-radius:var(--r-row);display:flex;align-items:center;padding:0 18px;background:var(--good);color:var(--on-good);font-weight:800;font-size:15px}
+.swipe-bg span{display:inline-flex;align-items:center;gap:8px}
+.swipe-bg .i{width:20px;height:20px;stroke-width:2.6}
+.swipe.left .swipe-bg{justify-content:flex-end;background:var(--fg3);color:var(--bg)}
+.swipe-fg{position:relative;border-radius:var(--r-row);background:var(--screen-bg);will-change:transform}
+.ex-done{display:flex;align-items:center;gap:10px;padding:12px 14px;background:color-mix(in srgb,var(--good) 24%,transparent);animation:chipIn .25s ease-out}
+.ex-done .ok{color:var(--good);display:grid}
+.ex-done .ok .i{width:18px;height:18px;stroke-width:2.8}
+.ex-done .nm{flex:1;min-width:0;font-weight:600;font-size:15px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex-done .sum{font-weight:700;font-size:14px;color:var(--fg2);white-space:nowrap}
+.swipe-hint{display:flex;align-items:center;gap:8px;margin:-2px 4px 2px;font-size:13px;color:var(--fg2)}
+.swipe-hint .i{width:16px;height:16px}
 .tq-btn{cursor:pointer;transition:transform .12s}
 .tq-btn:active{transform:scale(.9)}
 .tq-tip{position:relative;margin:2px 12px 12px;background:var(--ink);color:var(--on-ink);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;transform-origin:var(--ax) 0;animation:tipIn .22s cubic-bezier(.2,.8,.2,1)}
@@ -543,6 +556,7 @@ const I = {
   capsule: icon(['M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z', 'M8.5 8.5l7 7']),
   download: icon(['M12 4v11', 'M7 10l5 5 5-5', 'M5 20h14']),
   upload: icon(['M12 20V9', 'M7 14l5-5 5 5', 'M5 4h14']),
+  undo: icon(['M9 14L4 9l5-5', 'M4 9h11a5 5 0 0 1 0 10h-3']),
   play: icon(['M8 5.6v12.8a.8.8 0 0 0 1.2.7l10-6.4a.8.8 0 0 0 0-1.4l-10-6.4A.8.8 0 0 0 8 5.6z'], true),
 };
 
@@ -1188,6 +1202,7 @@ function LogPanel({ w, e, entry }) {
     const W = d.workouts.find((x) => x.id === w.id); const ex = W && findEx(W, e.id); if (!ex) return;
     const L = ensureLive(d, w.id);
     L.ex[e.id] = normEntry(L.ex[e.id], ex);
+    if (L.auto) delete L.auto[e.id];
     fn(L.ex[e.id]);
   });
   return html`<div class="log">
@@ -1200,6 +1215,53 @@ function LogPanel({ w, e, entry }) {
       <${Stepper} id=${`r-${e.id}-${i}`} value=${r} min=${0} max=${100} label=${`reps da série ${i + 1}`} onChange=${(v) => set((en) => { en.reps[i] = v; })} />
     </div>`)}
     <div class="howto-row"><a class="howto" href=${howToUrl(e.name)} target="_blank" rel="noopener noreferrer">${ytLogo()}<span>Como fazer</span></a></div>
+  </div>`;
+}
+
+/* Arrastar o card para o lado (como arquivar um e-mail).
+   dir "right": arrastar para a direita; "left": para a esquerda. Só começa em gesto horizontal,
+   então rolar a tela continua normal. */
+function Swipe({ dir, label, icon, tone, onSwipe, children }) {
+  const ref = useRef(null);
+  const st = useRef(null);
+  const dxRef = useRef(0);
+  const dragged = useRef(false);
+  const [dx, setDx] = useState(0);
+  const [anim, setAnim] = useState(false);
+  const sign = dir === 'right' ? 1 : -1;
+  const set = (v) => { dxRef.current = v; setDx(v); };
+  const down = (ev) => {
+    if (ev.button) return;
+    if (ev.target.closest('.log, .tq-btn, input, .stp')) return;
+    st.current = { x: ev.clientX, y: ev.clientY, id: ev.pointerId, on: false, w: ref.current.offsetWidth };
+  };
+  const move = (ev) => {
+    const s = st.current; if (!s || ev.pointerId !== s.id) return;
+    const mx = ev.clientX - s.x, my = ev.clientY - s.y;
+    if (!s.on) {
+      if (Math.abs(my) > 12 && Math.abs(my) > Math.abs(mx)) { st.current = null; return; }
+      if (Math.abs(mx) < 10 || Math.abs(mx) < Math.abs(my) * 1.4 || Math.sign(mx) !== sign) return;
+      s.on = true; setAnim(false);
+      try { ref.current.setPointerCapture(s.id); } catch (e) {}
+    }
+    const raw = sign > 0 ? Math.max(0, mx) : Math.min(0, mx);
+    set(raw);
+  };
+  const up = (ev) => {
+    const s = st.current; st.current = null;
+    if (!s || !s.on || ev.pointerId !== s.id) return;
+    dragged.current = true; setTimeout(() => { dragged.current = false; }, 80);
+    setAnim(true);
+    if (Math.abs(dxRef.current) > Math.min(110, s.w * 0.33)) {
+      try { navigator.vibrate && navigator.vibrate(15); } catch (e) {}
+      set(sign * s.w);
+      setTimeout(() => { onSwipe(); set(0); }, 210);
+    } else set(0);
+  };
+  return html`<div class=${'swipe ' + dir + ' ' + (tone || '')} ref=${ref} onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}
+      onClickCapture=${(ev) => { if (dragged.current) { ev.stopPropagation(); ev.preventDefault(); } }}>
+    <div class="swipe-bg" style=${`opacity:${dx ? Math.min(1, Math.abs(dx) / 60) : 0}`}><span>${icon}${label}</span></div>
+    <div class="swipe-fg" style=${`transform:translateX(${dx}px);transition:${anim ? 'transform .21s cubic-bezier(.2,.8,.2,1)' : 'none'}`}>${children}</div>
   </div>`;
 }
 
@@ -1234,7 +1296,29 @@ function ExerciseRow({ w, e, edit, open, onToggle }) {
   const chips = ts.length > 0 && html`<span class="tqs">${ts.map((t, i) => html`<span key=${t.id} class="tq tq-btn" role="button" tabindex="0" aria-label=${'O que é ' + t.name}
     onClick=${pick(t, i)} onKeyDown=${(ev) => { if (ev.key === 'Enter' || ev.key === ' ') pick(t, i)(ev); }}>${plainSym(t.sym)}</span>`)}</span>`;
   const tw = entry.w || e.last.w;
-  return html`<div class=${'ex' + (open ? ' open' : '') + (edit ? ' editing' : '')} data-sort=${edit ? '' : undefined} ref=${rowRef}>
+  const done = !!(live && live.done && live.done[e.id]);
+  const setDone = (v) => {
+    if (v && open) onToggle();
+    c.up((d) => {
+      const W = d.workouts.find((x) => x.id === w.id); const ex = W && findEx(W, e.id); if (!ex) return;
+      const L = ensureLive(d, w.id); L.done = L.done || {};
+      L.auto = L.auto || {};
+      if (v) {
+        // marcou sem ter mexido antes: lembra disso para o "desfazer" voltar ao que era
+        if (!L.ex[e.id]) L.auto[e.id] = true;
+        L.done[e.id] = true; L.ex[e.id] = normEntry(L.ex[e.id], ex); d.settings.swipeHint = true;
+      } else {
+        delete L.done[e.id];
+        if (L.auto[e.id]) { delete L.ex[e.id]; delete L.auto[e.id]; }
+      }
+    });
+  };
+  if (!edit && done) {
+    return html`<${Swipe} dir="left" tone="undo" label="Desfazer" icon=${I.undo()} onSwipe=${() => setDone(false)}>
+      <div class="ex ex-done"><span class="ok">${I.check()}</span><span class="nm">${e.name}</span><span class="num sum">${kg(entry.w)} · ${entry.reps.join(' · ')}</span></div>
+    <//>`;
+  }
+  const card = html`<div class=${'ex' + (open ? ' open' : '') + (edit ? ' editing' : '')} data-sort=${edit ? '' : undefined} ref=${rowRef}>
     <div class="ex-top">
       ${edit
         ? html`<div class="ex-head">
@@ -1256,6 +1340,7 @@ function ExerciseRow({ w, e, edit, open, onToggle }) {
     </div>`}
     ${!edit && html`<div class=${'log-wrap' + (open ? ' open' : '')} inert=${!open}><div class="log-clip"><${LogPanel} w=${w} e=${e} entry=${entry} /></div></div>`}
   </div>`;
+  return edit ? card : html`<${Swipe} dir="right" label="Feito" icon=${I.check()} onSwipe=${() => setDone(true)}>${card}<//>`;
 }
 
 /* Reordenar segurando e arrastando, como as notas do Google Keep:
@@ -1531,6 +1616,7 @@ function WorkoutScreen({ id, startEdit }) {
     if (!edit && !list.length) return null;
     return html`<section class="sec" aria-label=${label}>
       <h2 class="sec-h">${sec === 'warmup' ? I.flame() : I.dumbbell()}<span>${label}</span>${list.length > 0 && html`<span class="count num">${list.length}</span>`}</h2>
+      ${!edit && list.length > 0 && !data.settings.swipeHint && html`<p class="swipe-hint">${I.right()}<span>Terminou um exercício? Arraste o card para a direita.</span></p>`}
       <div class="sec-box">
         <${SortList} enabled=${edit} onMove=${(from, to) => move(sec, from, to)}>
           ${list.map((e) => html`<${ExerciseRow} key=${e.id} w=${w} e=${e} edit=${edit} open=${open === e.id} onToggle=${() => toggle(e)} />`)}
@@ -2228,9 +2314,9 @@ function App({ hot }) {
   const finish = () => {
     const L = data.live; const W = L && data.workouts.find((x) => x.id === L.wid);
     if (!W) return;
-    const touched = allEx(W).filter((e) => L.ex[e.id]);
+    const touched = allEx(W).filter((e) => L.ex[e.id] || (L.done && L.done[e.id]));
     const anyCardio = Object.values(L.cardio).some(Boolean);
-    if (!touched.length && !anyCardio) { toast('Abra ou ajuste ao menos um exercício antes de concluir'); return; }
+    if (!touched.length && !anyCardio) { toast('Arraste para a direita os exercícios que você fez antes de concluir'); return; }
     up((d) => {
       const LL = d.live; const WW = d.workouts.find((x) => x.id === LL.wid);
       const items = [];
