@@ -439,11 +439,15 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .meal-h .meal-edit{width:36px;height:36px;margin:-8px -8px -8px auto;color:var(--fg2)}
 .meal-h .meal-edit .i{width:18px;height:18px}
 .supps{display:flex;flex-wrap:wrap;gap:8px}
+.dc-sec{display:flex;flex-direction:column;gap:8px}
+.dc-sec .supps{gap:6px}
+.dc-sec .pill.supp{min-height:28px;padding:4px 10px;font-size:13px}
+.meals-h{padding:0 4px;margin-bottom:-6px}
 .pill.supp{height:auto;min-height:34px;padding:6px 12px;font-size:14px;gap:6px;line-height:1.25;text-align:left}
 .pill.supp .i{width:15px;height:15px;color:var(--fg2)}
 .pill.supp b{font-weight:800}
 .pill.supp.editing{outline:1.5px dashed var(--hair);outline-offset:-1.5px;cursor:pointer}
-.pill.supp.editing .i:last-child{width:13px;height:13px;margin-left:2px}
+.pill.supp.editing .i{width:13px;height:13px;margin-left:2px}
 .notes textarea.txt{background:var(--tint);border-color:var(--hair);color:var(--fg)}
 .notes textarea.txt::placeholder{color:var(--fg3)}
 .items .q{font-weight:700;font-size:15.5px}
@@ -539,6 +543,7 @@ const I = {
   yt: icon(['M3.5 8.2c.1-1.5 1.2-2.6 2.7-2.7C8 5.4 10 5.3 12 5.3s4 .1 5.8.2c1.5.1 2.6 1.2 2.7 2.7.1 1.3.2 2.5.2 3.8s-.1 2.5-.2 3.8c-.1 1.5-1.2 2.6-2.7 2.7-1.8.1-3.8.2-5.8.2s-4-.1-5.8-.2c-1.5-.1-2.6-1.2-2.7-2.7-.1-1.3-.2-2.5-.2-3.8s.1-2.5.2-3.8z', 'M10.3 9.3v5.4l4.6-2.7z']),
   ext: icon(['M14 4h6v6', 'M20 4l-9 9', 'M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5']),
   swap: icon(['M7 4L3 8l4 4', 'M3 8h13', 'M17 20l4-4-4-4', 'M21 16H8']),
+  utensils: icon(['M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2', 'M7 2v20', 'M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3z', 'M21 15v7']),
   capsule: icon(['M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z', 'M8.5 8.5l7 7']),
   play: icon(['M8 5.6v12.8a.8.8 0 0 0 1.2.7l10-6.4a.8.8 0 0 0 0-1.4l-10-6.4A.8.8 0 0 0 8 5.6z'], true),
 };
@@ -1130,9 +1135,12 @@ function DietCard() {
       <span class="eyebrow">Dieta</span>
     </div>
     <div class="card-body" ...${tap(open)}>
-      <div class="mp-list">
+      ${d.meals.length > 0 && html`<div class="dc-sec"><span class="pv-label">${I.utensils()}Refeições</span><div class="mp-list">
         ${d.meals.map((m) => html`<${CardMeal} key=${m.id} m=${m} />`)}
-      </div>
+      </div></div>`}
+      ${(d.supps || []).length > 0 && html`<div class="dc-sec"><span class="pv-label">${I.capsule()}Suplementos</span><div class="supps">
+        ${d.supps.map((x) => html`<span key=${x.id} class="pill supp">${x.q && html`<b class="num">${x.q}</b>`}<span>${x.n}</span></span>`)}
+      </div></div>`}
       ${!d.meals.length && html`<p class="mut">Nenhuma refeição ainda.</p>`}
     </div>
   </article>`;
@@ -1948,8 +1956,8 @@ function SuppBox({ edit }) {
     <h2 class="sec-h">${I.capsule()}<span>Suplementos</span>${list.length > 0 && html`<span class="count num">${list.length}</span>`}</h2>
     <div class="supps">
       ${list.map((x) => edit
-        ? html`<button type="button" key=${x.id} class="pill supp editing" aria-label=${'Editar ' + x.n} onClick=${() => c.openSheet({ type: 'supp', sid: x.id })}>${I.capsule()}${x.q && html`<b class="num">${x.q}</b>`}<span>${x.n}</span>${I.edit()}</button>`
-        : html`<span key=${x.id} class="pill supp">${I.capsule()}${x.q && html`<b class="num">${x.q}</b>`}<span>${x.n}</span></span>`)}
+        ? html`<button type="button" key=${x.id} class="pill supp editing" aria-label=${'Editar ' + x.n} onClick=${() => c.openSheet({ type: 'supp', sid: x.id })}>${x.q && html`<b class="num">${x.q}</b>`}<span>${x.n}</span>${I.edit()}</button>`
+        : html`<span key=${x.id} class="pill supp">${x.q && html`<b class="num">${x.q}</b>`}<span>${x.n}</span></span>`)}
     </div>
     ${edit && html`<button class="add" onClick=${() => c.openSheet({ type: 'supp' })}>${I.plus()} Adicionar suplemento</button>`}
   </section>`;
@@ -2000,6 +2008,7 @@ function DietScreen() {
       </div>
       ${edit && html`<button type="button" class="ib ex-edit" aria-label="Editar nome da dieta" onClick=${() => c.openSheet({ type: 'dietname' })}>${I.edit()}</button>`}
     </header>
+    <h2 class="sec-h meals-h">${I.utensils()}<span>Refeições</span>${d.meals.length > 0 && html`<span class="count num">${d.meals.length}</span>`}</h2>
     <div class="meals tl">
       ${d.meals.map((m, i) => html`<${MealView} key=${m.id} m=${m} edit=${edit} />`)}
     </div>
