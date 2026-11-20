@@ -530,6 +530,8 @@ const I = {
   swap: icon(['M7 4L3 8l4 4', 'M3 8h13', 'M17 20l4-4-4-4', 'M21 16H8']),
   utensils: icon(['M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2', 'M7 2v20', 'M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3z', 'M21 15v7']),
   capsule: icon(['M10.5 20.5l10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7z', 'M8.5 8.5l7 7']),
+  download: icon(['M12 4v11', 'M7 10l5 5 5-5', 'M5 20h14']),
+  upload: icon(['M12 20V9', 'M7 14l5-5 5 5', 'M5 4h14']),
   play: icon(['M8 5.6v12.8a.8.8 0 0 0 1.2.7l10-6.4a.8.8 0 0 0 0-1.4l-10-6.4A.8.8 0 0 0 8 5.6z'], true),
 };
 
@@ -864,9 +866,8 @@ function seed() {
   };
 }
 function loadData(hot) {
-  if (hot && hot.v === 1) return hot;
-  let d = null;
-  try { const s = localStorage.getItem(KEY); if (s) { const x = JSON.parse(s); if (x && x.v === 1) d = x; } } catch (e) {}
+  let d = hot && hot.v === 1 ? clone(hot) : null;
+  if (!d) try { const s = localStorage.getItem(KEY); if (s) { const x = JSON.parse(s); if (x && x.v === 1) d = x; } } catch (e) {}
   if (!d) d = seed();
   // dados salvos antes dos treinos da semana: acrescenta os dias que faltam, sem mexer no resto
   // exercícios antigos tinham uma técnica só (tech); agora é uma lista (techs)
@@ -2035,6 +2036,34 @@ function HistoryScreen() {
   </div></div>`;
 }
 
+// ---------- backup ----------
+async function exportBackup(data, toast) {
+  const name = `ficha-backup-${todayISO()}.json`;
+  const blob = new Blob([JSON.stringify({ app: 'ficha', exportedAt: new Date().toISOString(), data }, null, 1)], { type: 'application/json' });
+  try {
+    const file = new File([blob], name, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Backup do Ficha' }); toast('Backup pronto'); return; }
+  } catch (e) { if (e && e.name === 'AbortError') return; }
+  try {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast('Backup salvo em Downloads');
+  } catch (e) { toast('Não foi possível exportar o backup'); }
+}
+function importBackup(file, c) {
+  const r = new FileReader();
+  r.onload = () => {
+    let d = null;
+    try { const j = JSON.parse(r.result); d = j && j.data ? j.data : j; } catch (e) {}
+    if (!d || d.v !== 1 || !Array.isArray(d.workouts) || !d.diet) { c.toast('Esse arquivo não é um backup do Ficha'); return; }
+    const when = (() => { try { return JSON.parse(r.result).exportedAt?.slice(0, 10); } catch (e) { return null; } })();
+    c.openSheet({ type: 'confirm', title: 'Restaurar este backup?', text: `${when ? `Backup de ${fmtShort(when)}. ` : ''}Os treinos, a dieta e o histórico atuais serão substituídos pelos do arquivo.`, label: 'Restaurar', onOk: () => { c.replace(loadData(d)); c.toast('Backup restaurado'); } });
+  };
+  r.onerror = () => c.toast('Não foi possível ler o arquivo');
+  r.readAsText(file);
+}
+
 function SettingsScreen() {
   const c = useCtx(); const s = c.data.settings;
   const set = (k, v) => c.up((d) => { d.settings[k] = v; });
@@ -2061,7 +2090,12 @@ function SettingsScreen() {
     </section>
     <section class="set-group" aria-label="Dados">
       <h2 class="eyebrow">Dados</h2>
-      <p class="mut sm">Neste protótipo os dados ficam salvos só neste navegador.</p>
+      <p class="mut sm">Os dados ficam salvos só neste aparelho. Exporte um backup de vez em quando e guarde no Drive ou no WhatsApp.</p>
+      <div class="data-actions">
+        <button type="button" class="btn ink" onClick=${() => exportBackup(c.data, c.toast)}>${I.download()} Exportar backup</button>
+        <button type="button" class="btn ghost" onClick=${() => document.getElementById('bk-file').click()}>${I.upload()} Importar backup</button>
+        <input id="bk-file" type="file" accept="application/json,.json" hidden onChange=${(ev) => { const f = ev.target.files[0]; ev.target.value = ''; if (f) importBackup(f, c); }} />
+      </div>
       <div class="data-actions">
         ${hasSample && html`<button type="button" class="btn ghost" onClick=${() => c.openSheet({ type: 'confirm', title: 'Apagar sessões de exemplo?', text: 'O histórico de exemplo sai. Os treinos que você concluiu continuam.', label: 'Apagar exemplos', onOk: () => { c.up((d) => { d.sessions = d.sessions.filter((x) => !x.sample); }); c.toast('Exemplos apagados'); } })}>Apagar exemplos</button>`}
         <button type="button" class="btn ghost" onClick=${() => c.openSheet({ type: 'confirm', title: 'Recomeçar do exemplo?', text: 'Treinos, dieta, técnicas e histórico voltam para os dados de exemplo. O que você mudou será perdido.', label: 'Recomeçar', onOk: () => { c.replace(seed()); c.toast('Dados de exemplo restaurados'); } })}>Restaurar exemplo</button>
