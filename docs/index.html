@@ -1773,6 +1773,15 @@ function SessionSheet({ wid }) {
   const list = allEx(w);
   const done = list.filter((e) => L.done && L.done[e.id]).length;
   const left = list.length - done;
+  const cardioLeft = w.cardio.filter((k) => !(L.cardio && L.cardio[k.id])).length;
+  // faltando exercício ou cardio, pede confirmação antes de encerrar
+  const tryFinish = () => {
+    if (!left && !cardioLeft) { c.closeSheet(); c.finish(); return; }
+    const parts = [];
+    if (left) parts.push(`${left} ${left === 1 ? 'exercício' : 'exercícios'}`);
+    if (cardioLeft) parts.push(w.cardio.length === 1 ? 'o cardio' : `${cardioLeft} ${cardioLeft === 1 ? 'cardio' : 'cardios'}`);
+    c.openSheet({ type: 'confirm', title: 'Encerrar o treino?', text: `Ainda faltam ${parts.join(' e ')}. Tem certeza que quer encerrar o treino agora?`, label: 'Encerrar mesmo assim', cancel: 'Continuar treino', tone: 'ink', onOk: () => c.finish() });
+  };
   return html`<${Sheet} title="Treino em andamento">
     <div class="sess-prog">
       <div class="sess-ring" role="img" aria-label=${`${done} de ${list.length} exercícios feitos`}>
@@ -1790,7 +1799,7 @@ function SessionSheet({ wid }) {
     </div>
     <div class="sheet-actions">
       <button type="button" class="btn ghost danger" onClick=${c.askDiscard}>${I.trash()}Descartar</button>
-      <button type="button" class="btn ink grow" onClick=${() => { c.closeSheet(); c.finish(); }}>Concluir treino</button>
+      <button type="button" class="btn ink grow" onClick=${tryFinish}>Concluir treino</button>
     </div>
   <//>`;
 }
@@ -2151,13 +2160,13 @@ function TechSheet({ tid }) {
   <//>`;
 }
 
-function ConfirmSheet({ title, text, label, onOk }) {
+function ConfirmSheet({ title, text, label, onOk, cancel, tone }) {
   const c = useCtx();
   return html`<${Sheet} title=${title}>
     <p class="confirm-t">${text}</p>
     <div class="sheet-actions">
-      <button type="button" class="btn ghost" onClick=${c.closeSheet}>Cancelar</button>
-      <button type="button" class="btn danger-solid grow" onClick=${() => { onOk(); c.closeSheet(); }}>${label}</button>
+      <button type="button" class="btn ghost" onClick=${c.closeSheet}>${cancel || 'Cancelar'}</button>
+      <button type="button" class=${'btn grow ' + (tone === 'ink' ? 'ink' : 'danger-solid')} onClick=${() => { onOk(); c.closeSheet(); }}>${label}</button>
     </div>
   <//>`;
 }
