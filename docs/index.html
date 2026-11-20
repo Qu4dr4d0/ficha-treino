@@ -348,6 +348,19 @@ ul{list-style:none}
 @keyframes chipPop{0%{transform:scale(.9)}55%{transform:scale(1.06)}100%{transform:none}}
 @keyframes chipIn{from{opacity:0;transform:translateY(5px)}}
 .stats.sess-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sess-prog{display:flex;align-items:center;gap:20px}
+.sess-ring{position:relative;width:132px;height:132px;flex:none}
+.sess-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.sess-ring circle{fill:none;stroke-width:12}
+.sess-ring .trk{stroke:var(--tint2)}
+.sess-ring .bar{stroke:var(--good);stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1);animation:ringIn .8s cubic-bezier(.2,.8,.2,1)}
+@keyframes ringIn{from{stroke-dashoffset:358}}
+.sess-ring-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.sess-ring-c b{font-size:36px;font-weight:900}
+.sess-ring-c b span{font-size:19px;color:var(--fg2);font-weight:700}
+.sess-ring-c .mut{font-size:12.5px;margin-top:4px}
+.sess-time{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sess-time b{font-size:36px;font-weight:900;line-height:1.05}
 
 /* ---------- sheets ---------- */
 .scrim{position:fixed;inset:0;z-index:40;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;animation:fade .18s ease-out}
@@ -1761,9 +1774,19 @@ function SessionSheet({ wid }) {
   const done = list.filter((e) => L.done && L.done[e.id]).length;
   const left = list.length - done;
   return html`<${Sheet} title="Treino em andamento">
-    <div class="stats sess-stats">
-      <div class="stat"><span class="eyebrow">Tempo</span><span class="num big">${fmtClock(now - L.start)}</span></div>
-      <div class="stat"><span class="eyebrow">Exercícios</span><span class="num big">${done}/${list.length}</span><span class="mut">${left ? `faltam ${left}` : 'todos feitos'}</span></div>
+    <div class="sess-prog">
+      <div class="sess-ring" role="img" aria-label=${`${done} de ${list.length} exercícios feitos`}>
+        <svg viewBox="0 0 132 132" aria-hidden="true">
+          <circle cx="66" cy="66" r="57" class="trk" />
+          <circle cx="66" cy="66" r="57" class="bar" style=${`stroke-dasharray:${2 * Math.PI * 57};stroke-dashoffset:${2 * Math.PI * 57 * (1 - (list.length ? done / list.length : 0))}`} />
+        </svg>
+        <span class="sess-ring-c"><b class="num">${done}<span>/${list.length}</span></b><span class="mut">feitos</span></span>
+      </div>
+      <div class="sess-time">
+        <span class="eyebrow">Tempo</span>
+        <b class="num">${fmtClock(now - L.start)}</b>
+        <span class="mut sm">${left ? `faltam ${left} ${left === 1 ? 'exercício' : 'exercícios'}` : 'todos os exercícios feitos'}</span>
+      </div>
     </div>
     <div class="sheet-actions">
       <button type="button" class="btn ghost danger" onClick=${c.askDiscard}>${I.trash()}Descartar</button>
