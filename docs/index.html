@@ -244,6 +244,17 @@ ul{list-style:none}
 .rest.over{background:var(--good);color:var(--on-good)}
 .rest.static{margin:0;cursor:default;height:28px;font-size:13.5px}
 .tqs{display:inline-flex;gap:4px;flex:none}
+.tq-btn{cursor:pointer;transition:transform .12s}
+.tq-btn:active{transform:scale(.9)}
+.tq-tip{position:relative;margin:2px 12px 12px;background:var(--ink);color:var(--on-ink);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;transform-origin:var(--ax) 0;animation:tipIn .22s cubic-bezier(.2,.8,.2,1)}
+.tq-tip::before{content:"";position:absolute;top:-6px;left:var(--ax);width:12px;height:12px;border-radius:2px;background:var(--ink);transform:rotate(45deg)}
+.tq-tip.closing{animation:tipOut .16s ease-in forwards}
+.tq-tip-h{display:flex;align-items:center;gap:8px;font-size:15px}
+.tq-tip .tq{background:var(--on-ink);color:var(--ink)}
+.tq-tip-d{font-size:13.5px;line-height:1.4;opacity:.85}
+.tq-tip-c{font-weight:800;font-size:15px}
+@keyframes tipIn{from{opacity:0;transform:translateY(-6px) scale(.96)}}
+@keyframes tipOut{to{opacity:0;transform:translateY(-6px) scale(.96)}}
 .ex-edit{width:40px;height:40px;margin:8px 6px 0 0;color:var(--fg2)}
 .ex-edit .i{width:19px;height:19px}
 .sortable>[data-sort]{cursor:grab}
@@ -1213,7 +1224,32 @@ function ExerciseRow({ w, e, edit, open, onToggle }) {
   const live = liveFor(c.data, w);
   const entry = normEntry(live && live.ex[e.id], e);
   const editIt = () => c.openSheet({ type: 'exercise', wid: w.id, eid: e.id });
-  return html`<div class=${'ex' + (open ? ' open' : '') + (edit ? ' editing' : '')} data-sort=${edit ? '' : undefined}>
+  // balão que explica a técnica ao tocar na etiqueta (f, d, rp...)
+  const rowRef = useRef(null);
+  const [tip, setTip] = useState(null);
+  const closeTip = () => setTip((x) => (x && !x.closing ? { ...x, closing: true } : x));
+  useEffect(() => {
+    if (!tip) return;
+    if (tip.closing) { const tm = setTimeout(() => setTip(null), 160); return () => clearTimeout(tm); }
+    const away = (ev) => {
+      const row = rowRef.current;
+      const inThis = row && row.contains(ev.target);
+      if (inThis && (ev.target.closest('.tq-tip') || ev.target.closest('.tq-btn'))) return;
+      closeTip();
+    };
+    const esc = (ev) => { if (ev.key === 'Escape') closeTip(); };
+    document.addEventListener('pointerdown', away);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('pointerdown', away); document.removeEventListener('keydown', esc); };
+  }, [tip]);
+  const pick = (t, i) => (ev) => {
+    ev.stopPropagation(); ev.preventDefault();
+    setTip((x) => (x && x.t.id === t.id && !x.closing ? { ...x, closing: true } : { t, i }));
+  };
+  const chips = ts.length > 0 && html`<span class="tqs">${ts.map((t, i) => html`<span key=${t.id} class="tq tq-btn" role="button" tabindex="0" aria-label=${'O que é ' + t.name}
+    onClick=${pick(t, i)} onKeyDown=${(ev) => { if (ev.key === 'Enter' || ev.key === ' ') pick(t, i)(ev); }}>${plainSym(t.sym)}</span>`)}</span>`;
+  const tw = entry.w || e.last.w;
+  return html`<div class=${'ex' + (open ? ' open' : '') + (edit ? ' editing' : '')} data-sort=${edit ? '' : undefined} ref=${rowRef}>
     <div class="ex-top">
       ${edit
         ? html`<div class="ex-head">
@@ -1221,13 +1257,18 @@ function ExerciseRow({ w, e, edit, open, onToggle }) {
             <${ExMeta} e=${e} live=${live} />
           </div>`
         : html`<button type="button" class="ex-head" aria-expanded=${!!open} onClick=${onToggle}>
-            <span class="ex-name"><${Tqs} ts=${ts} /><span class="nm">${e.name}</span></span>
+            <span class="ex-name">${chips}<span class="nm">${e.name}</span></span>
             <${ExMeta} e=${e} live=${live} />
           </button>`}
       ${edit
         ? html`<button type="button" class="ib ex-edit" aria-label=${'Editar ' + e.name} onClick=${editIt}>${I.edit()}</button>`
         : html`<${RestChip} k=${e.id} label=${e.name} secs=${e.rest} />`}
     </div>
+    ${tip && !edit && html`<div class=${'tq-tip' + (tip.closing ? ' closing' : '')} role="note" style=${`--ax:${8 + tip.i * 26}px`}>
+      <span class="tq-tip-h"><span class="tq">${plainSym(tip.t.sym)}</span><b>${tip.t.name}</b></span>
+      ${tip.t.desc && html`<span class="tq-tip-d">${tip.t.desc}</span>`}
+      ${tip.t.pct && tip.t.reps && tw ? html`<span class="tq-tip-c num">Hoje: ${fmtNum(half((tw * tip.t.pct) / 100))} kg × ${tip.t.reps}</span>` : null}
+    </div>`}
     ${!edit && html`<div class=${'log-wrap' + (open ? ' open' : '')} inert=${!open}><div class="log-clip"><${LogPanel} w=${w} e=${e} entry=${entry} /></div></div>`}
   </div>`;
 }
@@ -1471,16 +1512,13 @@ function Legend() {
     <button type="button" class="legend-t" aria-expanded=${open} onClick=${() => setOpen(!open)}>${I.info()}<span>Legenda</span><span class=${'chev' + (open ? ' up' : '')}>${I.down()}</span></button>
     <div class=${'log-wrap' + (open ? ' open' : '')} inert=${!open}><div class="log-clip"><div class="legend-b">
       <dl class="key">
-        ${t0 && html`<div><dt><${Tq} t=${t0} /></dt><dd>Técnica avançada do exercício</dd></div>`}
+        ${t0 && html`<div><dt><${Tq} t=${t0} /></dt><dd>Técnica avançada: toque nela para ver o que fazer</dd></div>`}
         <div><dt><span class="pill num">3×10–12</span></dt><dd>3 séries de 10 a 12 repetições</dd></div>
         <div><dt><span class="pill num">15 kg</span></dt><dd>Carga que você usou da última vez</dd></div>
         <div><dt><span class="pill num reps">12 · 10 · 10</span></dt><dd>Reps feitas em cada série com essa carga</dd></div>
         <div><dt><span class="up">${I.arrowUp()}</span></dt><dd>Bateu o topo da faixa em todas as séries: hora de subir a carga</dd></div>
         <div><dt><span class="rest static">${I.timer()}1:30</span></dt><dd>Toque ao terminar a série para contar o descanso</dd></div>
       </dl>
-      <h3 class="eyebrow legend-tq">Técnicas</h3>
-      <ul class="tech-list">${c.data.techniques.map((t) => html`<li key=${t.id}><${Tq} t=${t} /><div><b>${t.name}</b><div class="mut">${t.desc}</div></div></li>`)}</ul>
-      <div><button class="link" onClick=${() => c.go({ name: 'settings' })}>${I.edit()} Editar técnicas</button></div>
     </div></div></div>
   </section>`;
 }
