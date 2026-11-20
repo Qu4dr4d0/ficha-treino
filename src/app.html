@@ -306,14 +306,15 @@ ul{list-style:none}
 .log-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:4px}
 .prog-hint{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--good);font-weight:600}
 .sec-box.cardio{gap:10px}
-.cardio-row{display:flex;align-items:center;gap:10px}
-.cardio-card{padding:12px 10px 12px 14px}
-.cardio-card .ex-edit{margin:-6px -4px -6px 0}
-.cardio-main{flex:1;min-width:0;display:flex;align-items:baseline;gap:4px 10px;flex-wrap:wrap;border-radius:10px}
-.cardio-main.tap{cursor:pointer;padding:12px 14px;margin:0;background:var(--tint);border-radius:var(--r-row)}
-.cardio-min{font-weight:800;font-size:27px;line-height:1}
-.cardio-min small{font-size:13px;font-weight:600;margin-left:3px;color:var(--fg2);font-family:var(--font-ui)}
-.cardio-row .rest{margin:0}
+.cardio-head{padding-right:14px}
+.ex-top .cardio-head{padding-right:6px}
+.marq{display:block;overflow:hidden;margin-top:2px}
+/* esmaecido só do lado escondido: a máscara é 14px maior e anda junto com o texto */
+.marq.over{--fd:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);-webkit-mask:var(--fd) -14px 0/calc(100% + 14px) 100% no-repeat;mask:var(--fd) -14px 0/calc(100% + 14px) 100% no-repeat}
+.marq-t{display:flex;align-items:center;gap:5px;width:max-content;font-size:14.5px}
+.marq-t .pill{white-space:nowrap;flex:none}
+.pill .bars{width:16px;height:16px;margin-right:1px}
+@media (prefers-reduced-motion:reduce){.marq.over{overflow-x:auto;scrollbar-width:none}}
 .legend{border-radius:var(--r-card);background:var(--tint)}
 .legend-t{width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;font-weight:600;font-size:14px;color:var(--fg2);border-radius:var(--r-card)}
 .legend-t span{flex:1}
@@ -842,6 +843,8 @@ const cardioLabel = (k) => {
   const parts = [k.type || (k.details ? '' : 'Cardio'), k.intensity || '', k.details || ''].filter(Boolean);
   return [...new Set(parts)].join(' · ');
 };
+const cardioName = (k) => k.type || 'Cardio';
+const INT_LV = { Leve: 1, Moderada: 2, Alta: 3 };
 const mkCardio = (min, type, intensity, details = '') => { const k = { id: uid(), min, type, intensity, details }; k.desc = cardioLabel(k); return k; };
 
 /* ================= dados de exemplo ================= */
@@ -965,7 +968,7 @@ function loadData(hot) {
   }
   // cardio: tipos e intensidades criados pelo usuário; cardio antigo (só texto) vira detalhes, sem tipo
   if (!Array.isArray(d.cardioTypes)) d.cardioTypes = [];
-  if (!Array.isArray(d.cardioInts)) d.cardioInts = [];
+  delete d.cardioInts; // intensidades voltaram a ser fixas (Leve, Moderada, Alta)
   d.workouts.forEach((w) => (w.cardio || []).forEach((k) => {
     if (k.type === undefined) { k.type = ''; k.intensity = k.intensity || ''; k.details = k.desc || ''; }
     if (k.type === 'Outro' && !d.cardioTypes.includes('Outro')) k.type = '';
@@ -1652,6 +1655,51 @@ function SortList({ enabled, onMove, children }) {
   return html`<div class=${'ex-list' + (enabled ? ' sortable' : '')} ref=${ref}>${children}</div>`;
 }
 
+// Linha única: se não couber, desliza sozinha até o fim, espera e recomeça do início.
+function Marquee({ children }) {
+  const box = useRef(null), track = useRef(null);
+  useLayoutEffect(() => {
+    const el = box.current, tr = track.current;
+    if (!el || !tr) return;
+    let anims = [], last = -1;
+    const stop = () => { anims.forEach((x) => x.cancel()); anims = []; };
+    const run = () => {
+      const dx = Math.ceil(tr.offsetWidth - el.clientWidth);
+      if (dx === last) return;
+      last = dx; stop();
+      el.classList.toggle('over', dx > 1);
+      if (dx <= 1 || matchMedia('(prefers-reduced-motion: reduce)').matches || !tr.animate) return;
+      const hold = 1800, move = Math.max(900, (dx / 32) * 1000), stay = 1300, fade = 250;
+      const T = hold + move + stay + fade * 2, at = (ms) => ms / T;
+      // posições: começo, fim do deslize, fim da pausa, sumiu, volta ao começo (invisível), reaparece
+      const o = [0, at(hold), at(hold + move), at(hold + move + stay), at(hold + move + stay + fade), at(hold + move + stay + fade) + 0.0001, 1];
+      const frames = (a, b, extra) => o.map((offset, i) => ({ offset, ...(i >= 2 && i <= 4 ? b : a), ...(extra ? extra(i) : {}), ...(i === 1 ? { easing: 'ease-in-out' } : {}) }));
+      const opt = { duration: T, iterations: Infinity };
+      anims.push(tr.animate(frames({ transform: 'none' }, { transform: `translateX(${-dx}px)` }, (i) => ({ opacity: i === 4 || i === 5 ? 0 : 1 })), opt));
+      anims.push(el.animate(frames({ maskPosition: '-14px 0', webkitMaskPosition: '-14px 0' }, { maskPosition: '0px 0', webkitMaskPosition: '0px 0' }), opt));
+    };
+    run();
+    const ro = new ResizeObserver(run);
+    ro.observe(el); ro.observe(tr);
+    return () => { ro.disconnect(); stop(); };
+  }, []);
+  return html`<span class="marq" ref=${box}><span class="marq-t" ref=${track}>${children}</span></span>`;
+}
+
+const IntBars = ({ lv }) => html`<svg class="bars" viewBox="0 0 24 24" aria-hidden="true">${[[3, 14, 6], [10, 10, 10], [17, 6, 14]].map(([x, y, h], i) => html`<rect x=${x} y=${y} width="4.5" height=${h} rx="1.5" fill="currentColor" opacity=${i < lv ? 1 : 0.28} />`)}</svg>`;
+
+// tempo · intensidade (barrinhas: 1 leve, 2 moderada, 3 alta) · detalhes, tudo numa linha
+function CardioHead({ k }) {
+  return html`<div class="ex-head cardio-head">
+    <span class="ex-name"><span class="nm">${cardioName(k)}</span></span>
+    <${Marquee}>
+      <span class="pill scheme num">${k.min} min</span>
+      ${k.intensity && html`<span class="pill load">${INT_LV[k.intensity] ? html`<${IntBars} lv=${INT_LV[k.intensity]} />` : null}${k.intensity}</span>`}
+      ${k.details && html`<span class="pill reps">${k.details}</span>`}
+    <//>
+  </div>`;
+}
+
 function CardioRow({ w, k, edit }) {
   const c = useCtx();
   const live = liveFor(c.data, w);
@@ -1659,22 +1707,19 @@ function CardioRow({ w, k, edit }) {
   const setDone = (v) => c.up((d) => { const L = ensureLive(d, w.id); if (v) { L.cardio[k.id] = true; d.settings.swipeHint = true; } else delete L.cardio[k.id]; });
   if (edit) {
     return html`<div class="ex cardio-card editing" data-sort="">
-      <div class="cardio-row">
-        <div class="cardio-main"><span class="cardio-min num">${k.min}<small>min</small></span><span>${cardioLabel(k)}</span></div>
+      <div class="ex-top">
+        <${CardioHead} k=${k} />
         <button type="button" class="ib ex-edit" aria-label=${'Editar cardio ' + cardioLabel(k)} onClick=${() => c.openSheet({ type: 'cardio', wid: w.id, cid: k.id })}>${I.edit()}</button>
       </div>
     </div>`;
   }
   if (done) {
     return html`<${Swipe} dir="left" tone="undo" label="Desfazer" icon=${I.undo()} onSwipe=${() => setDone(false)}>
-      <div class="ex ex-done"><span class="ok">${I.check()}</span><span class="nm">${cardioLabel(k)}</span><span class="num sum">${k.min} min</span></div>
+      <div class="ex ex-done"><span class="ok">${I.check()}</span><span class="nm">${cardioName(k)}</span><span class="num sum">${k.min} min</span></div>
     <//>`;
   }
   return html`<${Swipe} dir="right" label="Feito" icon=${I.check()} onSwipe=${() => setDone(true)}>
-    <div class="ex cardio-card"><div class="cardio-row">
-      <div class="cardio-main"><span class="cardio-min num">${k.min}<small>min</small></span><span>${cardioLabel(k)}</span></div>
-      <${RestChip} k=${'c-' + k.id} label=${'Cardio · ' + cardioLabel(k)} secs=${k.min * 60} kind="cardio" />
-    </div></div>
+    <div class="ex cardio-card"><${CardioHead} k=${k} /></div>
   <//>`;
 }
 
@@ -1990,7 +2035,7 @@ function ExerciseSheet({ wid, eid, section }) {
 // Chips de escolha única com (+) no fim para criar uma opção nova.
 // O (+) já é um campo de texto (o toque abre o teclado direto, inclusive no iPhone) que se alarga ao focar.
 // A opção criada pelo usuário, quando selecionada, ganha um × para apagá-la da lista.
-function ChipPick({ base, custom, value, onPick, onAdd, onRemove, noun, ph }) {
+function ChipPick({ base, custom = [], value, onPick, onAdd, onRemove, noun, ph, add = true }) {
   const list = [...base, ...custom.filter((t) => !base.includes(t))];
   if (value && !list.includes(value)) list.push(value);
   const commit = (el) => {
@@ -2008,9 +2053,9 @@ function ChipPick({ base, custom, value, onPick, onAdd, onRemove, noun, ph }) {
       if (on && custom.includes(t)) return html`<span class="chip sel cust"><button type="button" class="chip-t" aria-pressed="true" onClick=${() => onPick('')}>${t}</button><button type="button" class="chip-x" aria-label=${'Apagar ' + noun + ' ' + t} onClick=${() => { onRemove(t); onPick(''); }}>${I.close()}</button></span>`;
       return html`<button type="button" class=${'chip' + (on ? ' sel' : '')} aria-pressed=${on} onClick=${() => onPick(on ? '' : t)}>${t}</button>`;
     })}
-    <span class="chip-new">${I.plus()}<input class="chip" maxlength="20" autocomplete="off" enterkeyhint="done" placeholder=${ph} aria-label=${'Criar ' + noun}
+    ${add && html`<span class="chip-new">${I.plus()}<input class="chip" maxlength="20" autocomplete="off" enterkeyhint="done" placeholder=${ph} aria-label=${'Criar ' + noun}
       onKeyDown=${(ev) => { if (ev.key === 'Enter') { ev.preventDefault(); commit(ev.target); ev.target.blur(); } else if (ev.key === 'Escape') { ev.stopPropagation(); ev.target.value = ''; ev.target.blur(); } }}
-      onBlur=${(ev) => commit(ev.target)} /></span>
+      onBlur=${(ev) => commit(ev.target)} /></span>`}
   </div>`;
 }
 
@@ -2033,7 +2078,7 @@ function CardioSheet({ wid, cid }) {
     c.up((d) => { const W = d.workouts.find((x) => x.id === wid); W.cardio = W.cardio.filter((k) => k.id !== cid); });
     c.closeSheet();
   };
-  // listas próprias do usuário: d.cardioTypes / d.cardioInts
+  // tipos criados pelo usuário ficam em d.cardioTypes
   const pick = (key, listKey, noun, ph, base) => html`<${ChipPick} base=${base} custom=${c.data[listKey]} value=${f[key]} noun=${noun} ph=${ph}
     onPick=${(v) => S(key, v)}
     onAdd=${(t) => c.up((d) => { if (!d[listKey].some((x) => x.toLowerCase() === t.toLowerCase())) d[listKey].push(t); })}
@@ -2041,7 +2086,7 @@ function CardioSheet({ wid, cid }) {
   return html`<${Sheet} title=${orig ? 'Editar cardio' : 'Novo cardio'} watch=${f} onSave=${save}>
     <div class="field"><span class="flabel">Tipo</span>${pick('type', 'cardioTypes', 'tipo', 'Novo tipo', CARDIO_TYPES)}</div>
     <div class="field"><label for="cd-min">Duração</label><${Stepper} id="cd-min" value=${f.min} step=${5} min=${1} max=${240} unit="min" label="duração em minutos" onChange=${(v) => S('min', v)} /></div>
-    <div class="field"><span class="flabel">Intensidade</span>${pick('intensity', 'cardioInts', 'intensidade', 'Nova intensidade', CARDIO_INT)}</div>
+    <div class="field"><span class="flabel">Intensidade</span><${ChipPick} base=${CARDIO_INT} value=${f.intensity} noun="intensidade" add=${false} onPick=${(v) => S('intensity', v)} /></div>
     <div class="field"><label for="cd-det">Detalhes<span class="opt">opcional</span></label><input id="cd-det" class="txt" autocomplete="off" maxlength="60" placeholder="Ex.: inclinação 8%, 6 km/h" value=${f.details} onInput=${(ev) => S('details', ev.target.value)} /></div>
     <div class="sheet-actions">
       ${orig && html`<button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Excluir'}</button>`}
