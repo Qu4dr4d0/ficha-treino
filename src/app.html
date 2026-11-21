@@ -505,6 +505,13 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .day-items .pr .i{width:14px;height:14px}
 .day-items .w{font-weight:700;font-size:15px;text-align:right}
 .day-items .r{color:var(--fg2);text-align:right;font-size:14.5px}
+.login .wrap{min-height:100dvh;justify-content:center;max-width:420px;gap:14px;padding-bottom:40px}
+.login-top{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;margin-bottom:14px}
+.login-logo{width:72px;height:72px;border-radius:20px;margin-bottom:12px;box-shadow:0 0 0 1px var(--hair)}
+.login-top .page-sub{margin-top:4px}
+.login .btn{width:100%}
+.login .sheet-actions .btn{width:auto}
+label.novo-opt{cursor:pointer}
 .novo-list{display:flex;flex-direction:column;gap:8px}
 .novo-opt{display:flex;align-items:center;gap:14px;padding:14px;border-radius:var(--r-row);background:var(--tint);text-align:left;width:100%}
 .novo-opt b{font-size:15.5px}
@@ -2644,13 +2651,11 @@ function NotifyRow() {
 
 function AccountRow() {
   const c = useCtx();
-  const [s, setS] = useState(authGet);
-  const out = () => { authSet(null); setS(null); c.toast('Você saiu da conta'); };
   return html`<section class="set-group" aria-label="Conta">
     <h2 class="eyebrow">Conta</h2>
     <div class="set-row">
-      <span>${s ? html`Conectado<span class="mut sm block">${s.email || 'Conta Google'}</span>` : html`Não conectado<span class="mut sm block">Entre para importar treinos por foto</span>`}</span>
-      ${s ? html`<button type="button" class="btn ghost" onClick=${out}>Sair</button>` : html`<button type="button" class="btn ghost" onClick=${() => c.openSheet({ type: 'novo', step: 'login' })}>Entrar</button>`}
+      <span>Conectado<span class="mut sm block">${(c.auth && c.auth.email) || 'Conta Google'}</span></span>
+      <button type="button" class="btn ghost" onClick=${() => c.openSheet({ type: 'confirm', title: 'Sair da conta?', text: 'Os treinos e a dieta continuam salvos neste aparelho. Para usar o app de novo, é só entrar.', label: 'Sair', tone: 'ink', onOk: () => c.signOut() })}>Sair</button>
     </div>
   </section>`;
 }
@@ -2704,7 +2709,6 @@ function SettingsScreen() {
 const SB_URL = 'https://yskwmincfymojicocgjz.supabase.co';
 const SB_KEY = 'sb_publishable_POSX65AKDjMYRqXO8yeKng_LPgEt5U_';
 const AUTH_KEY = 'ficha:auth';
-const PENDING_KEY = 'ficha:pending';
 const authGet = () => { try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || null; } catch (e) { return null; } };
 const authSet = (s) => { try { if (s) localStorage.setItem(AUTH_KEY, JSON.stringify(s)); else localStorage.removeItem(AUTH_KEY); } catch (e) {} };
 const jwtEmail = (t) => { try { const p = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); return JSON.parse(atob(p + '='.repeat((4 - (p.length % 4)) % 4))).email || ''; } catch (e) { return ''; } };
@@ -2738,7 +2742,6 @@ function readAuthHash() {
   return { email: s.email };
 }
 const googleLogin = () => {
-  try { localStorage.setItem(PENDING_KEY, 'import'); } catch (e) {}
   location.href = `${SB_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(location.origin + location.pathname)}`;
 };
 const loginError = (e) => (e.status === 429 || e.code === 'over_email_send_rate_limit'
@@ -2775,31 +2778,57 @@ async function readPlan(file) {
 
 const GOOGLE_G = html`<svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
 
-// "Novo treino": importar pela IA ou montar do zero. Também faz o login quando precisa.
-function NovoSheet({ step: first }) {
-  const c = useCtx();
-  const [step, setStep] = useState(first || 'menu'); // menu | login | code | photo | reading | error
+// Tela de entrada: o app só abre com uma conta conectada (Google ou código por e-mail, sem senha).
+// A sessão fica salva no aparelho, então depois de entrar o app abre direto, mesmo sem internet.
+function LoginScreen({ onDone, note }) {
+  const [step, setStep] = useState('start'); // start | code
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
-  const [msg, setMsg] = useState('');
+  const [msg, setMsg] = useState(note || '');
   const [busy, setBusy] = useState(false);
-  const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; }, []);
-  const toImport = () => { setMsg(''); setStep(authGet() ? 'photo' : 'login'); };
   const sendCode = async () => {
     const em = email.trim();
     if (!/^\S+@\S+\.\S+$/.test(em)) { setMsg('Digite um e-mail válido.'); return; }
     setBusy(true); setMsg('');
-    try { await sbAuth('otp', { email: em, create_user: true }); if (alive.current) { setCode(''); setStep('code'); } }
-    catch (e) { if (alive.current) setMsg(loginError(e)); }
-    if (alive.current) setBusy(false);
+    try { await sbAuth('otp', { email: em, create_user: true }); setCode(''); setStep('code'); }
+    catch (e) { setMsg(loginError(e)); }
+    setBusy(false);
   };
   const verify = async () => {
     setBusy(true); setMsg('');
-    try { const r = await sbAuth('verify', { type: 'email', email: email.trim(), token: code }); authSet(toSession(r, email.trim())); if (alive.current) setStep('photo'); }
-    catch (e) { if (alive.current) setMsg(loginError(e)); }
-    if (alive.current) setBusy(false);
+    try { const s = toSession(await sbAuth('verify', { type: 'email', email: email.trim(), token: code }), email.trim()); authSet(s); onDone(s); return; }
+    catch (e) { setMsg(loginError(e)); }
+    setBusy(false);
   };
+  return html`<div class="screen login"><div class="wrap">
+    <div class="login-top">
+      <img class="login-logo" src="icons/icon-192.png" alt="" onError=${(ev) => { ev.target.style.display = 'none'; }} />
+      <h1 class="page-title">Ficha</h1>
+      <p class="page-sub">${step === 'code' ? html`Enviamos um código para <b>${email.trim()}</b>` : 'Entre para continuar'}</p>
+    </div>
+    ${step === 'start' && html`
+      <button type="button" class="btn google" onClick=${googleLogin}>${GOOGLE_G}Entrar com Google</button>
+      <div class="or"><span>ou receba um código por e-mail</span></div>
+      <div class="field"><label for="lg-email">E-mail</label><input id="lg-email" class="txt" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value=${email} onInput=${(ev) => setEmail(ev.target.value)} onKeyDown=${(ev) => { if (ev.key === 'Enter') sendCode(); }} /></div>
+      ${msg && html`<span class="err">${msg}</span>`}
+      <button type="button" class="btn ghost" disabled=${busy} onClick=${sendCode}>${busy ? 'Enviando…' : 'Enviar código'}</button>`}
+    ${step === 'code' && html`
+      <div class="field"><label for="lg-code">Código</label><input id="lg-code" class="txt code-in num" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="000000" value=${code} onInput=${(ev) => setCode(ev.target.value.replace(/\D/g, ''))} onKeyDown=${(ev) => { if (ev.key === 'Enter' && code.length >= 6) verify(); }} /></div>
+      ${msg && html`<span class="err">${msg}</span>`}
+      <div class="sheet-actions">
+        <button type="button" class="btn ghost" onClick=${() => { setMsg(''); setStep('start'); }}>Trocar e-mail</button>
+        <button type="button" class="btn ink grow" disabled=${busy || code.length < 6} onClick=${verify}>${busy ? 'Entrando…' : 'Entrar'}</button>
+      </div>`}
+  </div></div>`;
+}
+
+// "Novo treino": importar pela IA (abre direto a escolha da foto) ou montar do zero.
+function NovoSheet() {
+  const c = useCtx();
+  const [step, setStep] = useState('menu'); // menu | photo | reading | error
+  const [msg, setMsg] = useState('');
+  const alive = useRef(true);
+  useEffect(() => () => { alive.current = false; }, []);
   const pick = async (ev) => {
     const f = ev.target.files && ev.target.files[0];
     ev.target.value = '';
@@ -2812,37 +2841,22 @@ function NovoSheet({ step: first }) {
       c.go({ name: 'import', plan });
     } catch (e) {
       if (!alive.current) return;
-      if (e.login) { setMsg('Sua sessão venceu. Entre de novo.'); setStep('login'); return; }
+      if (e.login) { c.signOut('Sua sessão venceu. Entre de novo.'); return; }
       setMsg(e.message); setStep('error');
     }
   };
-  const titles = { menu: 'Novo treino', login: 'Entrar para importar', code: 'Digite o código', photo: 'Importar ficha', reading: 'Lendo a ficha', error: 'Não deu certo' };
-  const opt = (icon, t, s, on) => html`<button type="button" class="novo-opt" onClick=${on}><span class="novo-ic">${icon}</span><span><b>${t}</b><span class="mut sm block">${s}</span></span></button>`;
+  const titles = { menu: 'Novo treino', photo: 'Importar ficha', reading: 'Lendo a ficha', error: 'Não deu certo' };
+  const opt = (icon, t, sub, on) => html`<button type="button" class="novo-opt" onClick=${on}><span class="novo-ic">${icon}</span><span><b>${t}</b><span class="mut sm block">${sub}</span></span></button>`;
+  const picker = (label) => html`<label class="pick">${I.camera()}<b>${label}</b><span class="mut sm">Tire uma foto da ficha ou escolha da galeria</span><input type="file" accept="image/*" hidden onChange=${pick} /></label>`;
   return html`<${Sheet} title=${titles[step]}>
     ${step === 'menu' && html`<div class="novo-list">
-      ${opt(I.camera(), 'Importar de foto ou print', 'A IA lê a ficha e monta os treinos', toImport)}
+      <label class="novo-opt"><span class="novo-ic">${I.camera()}</span><span><b>Importar de foto ou print</b><span class="mut sm block">A IA lê a ficha e monta os treinos</span></span><input type="file" accept="image/*" hidden onChange=${pick} /></label>
       ${opt(I.plus(), 'Montar do zero', 'Começa vazio, exercício por exercício', () => c.newWorkout())}
     </div>`}
-    ${step === 'login' && html`
-      ${msg && html`<span class="err">${msg}</span>`}
-      <button type="button" class="btn google" onClick=${googleLogin}>${GOOGLE_G}Entrar com Google</button>
-      <div class="or"><span>ou receba um código por e-mail</span></div>
-      <div class="field"><label for="lg-email">E-mail</label><input id="lg-email" class="txt" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value=${email} onInput=${(ev) => setEmail(ev.target.value)} onKeyDown=${(ev) => { if (ev.key === 'Enter') sendCode(); }} /></div>
-      <div class="sheet-actions"><button type="button" class="btn ghost grow" disabled=${busy} onClick=${sendCode}>${busy ? 'Enviando…' : 'Enviar código'}</button></div>`}
-    ${step === 'code' && html`
-      <p class="mut" style="margin:-6px 0 0">Enviamos um código para <b>${email.trim()}</b>.</p>
-      <div class="field"><label for="lg-code">Código</label><input id="lg-code" class="txt code-in num" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="000000" value=${code} onInput=${(ev) => setCode(ev.target.value.replace(/\D/g, ''))} onKeyDown=${(ev) => { if (ev.key === 'Enter' && code.length >= 6) verify(); }} />${msg && html`<span class="err">${msg}</span>`}</div>
-      <div class="sheet-actions">
-        <button type="button" class="btn ghost" onClick=${() => { setMsg(''); setStep('login'); }}>Trocar e-mail</button>
-        <button type="button" class="btn ink grow" disabled=${busy || code.length < 6} onClick=${verify}>${busy ? 'Entrando…' : 'Entrar'}</button>
-      </div>`}
-    ${step === 'photo' && html`
-      <label class="pick">${I.camera()}<b>Escolher foto ou print</b><span class="mut sm">Tire uma foto da ficha ou escolha da galeria</span>
-        <input type="file" accept="image/*" hidden onChange=${pick} /></label>`}
     ${step === 'reading' && html`<div class="reading"><span class="spin" aria-hidden="true"></span><b>Lendo a ficha…</b><span class="mut sm">Leva uns 10 segundos</span></div>`}
     ${step === 'error' && html`
       <p class="confirm-t">${msg}</p>
-      <div class="sheet-actions"><button type="button" class="btn ghost" onClick=${c.closeSheet}>Fechar</button><button type="button" class="btn ink grow" onClick=${() => setStep('photo')}>Tentar outra foto</button></div>`}
+      ${picker('Tentar outra foto')}`}
   <//>`;
 }
 
@@ -3022,22 +3036,21 @@ function App({ hot }) {
     go({ name: 'workout', id, edit: true });
     openSheet({ type: 'meta', id, isNew: true });
   };
-  // voltou do "Entrar com Google": guarda a sessão e segue para a importação
+  // conta: sem sessão salva, o app mostra a tela de entrar
+  const [auth, setAuth] = useState(authGet);
+  const [loginNote, setLoginNote] = useState(AUTH_BACK && AUTH_BACK.error ? 'Não deu para entrar com o Google. Tente de novo.' : '');
+  const signOut = (note) => { authSet(null); setAuth(null); setSheet(null); setStack([{ name: 'home' }]); setLoginNote(note || ''); };
   useEffect(() => {
-    const r = readAuthHash();
-    if (!r) return;
-    let pending = null;
-    try { pending = localStorage.getItem(PENDING_KEY); localStorage.removeItem(PENDING_KEY); } catch (e) {}
-    if (r.error) { toast('Não deu para entrar com o Google'); return; }
-    toast(r.email ? `Entrou como ${r.email}` : 'Entrou');
-    if (pending === 'import') openSheet({ type: 'novo', step: 'photo' });
+    if (AUTH_BACK && AUTH_BACK.email) toast(`Entrou como ${AUTH_BACK.email}`);
+    // ao abrir com internet, confere se a sessão ainda vale (sem internet, segue usando o app)
+    if (auth) freshSession().then(() => { if (!authGet()) signOut('Sua sessão venceu. Entre de novo.'); });
   }, []);
   const deleteWorkout = (id) => {
     up((d) => { d.workouts = d.workouts.filter((x) => x.id !== id); if (d.live && d.live.wid === id) d.live = null; if (d.sel === id) d.sel = d.workouts[0] ? d.workouts[0].id : null; });
     home(); toast('Treino excluído');
   };
 
-  const ctx = { data, up, route, go, back, home, openSheet, closeSheet, sheetClosing: !!(sheet && sheet.closing), timer, setTimer, startTimer, stopTimer, toast, finish, askDiscard, replace, newWorkout, deleteWorkout };
+  const ctx = { data, up, route, go, back, home, openSheet, closeSheet, sheetClosing: !!(sheet && sheet.closing), timer, setTimer, startTimer, stopTimer, toast, finish, askDiscard, replace, newWorkout, deleteWorkout, auth, signOut };
   let screen;
   if (route.name === 'workout') screen = html`<${WorkoutScreen} key=${route.id} id=${route.id} startEdit=${route.edit} />`;
   else if (route.name === 'diet') screen = html`<${DietScreen} />`;
@@ -3046,6 +3059,7 @@ function App({ hot }) {
   else if (route.name === 'import') screen = html`<${ImportScreen} key=${route.n || 0} plan=${route.plan} />`;
   else screen = html`<${Home} />`;
 
+  if (!auth) return html`<${LoginScreen} note=${loginNote} onDone=${(s) => { setAuth(s); setLoginNote(''); toast(s.email ? `Entrou como ${s.email}` : 'Entrou'); }} />${toastMsg && html`<div class="toast" role="status">${toastMsg}</div>`}`;
   return html`<${Ctx.Provider} value=${ctx}>
     ${screen}
     <${TimerWatcher} />
@@ -3054,6 +3068,7 @@ function App({ hot }) {
   <//>`;
 }
 
+const AUTH_BACK = readAuthHash();
 const start = (hotData) => render(html`<${App} hot=${hotData && hotData.data} />`, document.getElementById('app'));
 try { window.claude?.hot?.snapshot?.(() => ({ data: latest })); } catch (e) {}
 if (window.claude?.hot?.ready) window.claude.hot.ready(start); else start(window.claude?.hot?.data ?? {});
