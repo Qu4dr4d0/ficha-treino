@@ -321,11 +321,14 @@ ul{list-style:none}
 .log-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:4px}
 .prog-hint{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--good);font-weight:600}
 .sec-box.cardio{gap:10px}
-.marq{display:block;overflow:hidden;margin-top:2px}
+.marq{display:block;overflow:hidden;flex:1 1 auto;min-width:0}
 /* esmaecido só do lado escondido: a máscara é 14px maior e anda junto com o texto */
 .marq.over{--fd:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);-webkit-mask:var(--fd) -14px 0/calc(100% + 14px) 100% no-repeat;mask:var(--fd) -14px 0/calc(100% + 14px) 100% no-repeat}
-.marq-t{display:flex;align-items:center;gap:5px;width:max-content;font-size:14.5px}
-.marq-t .pill{white-space:nowrap;flex:none}
+.marq-t{display:flex;align-items:center;gap:5px;width:max-content;white-space:nowrap}
+.cardio-card .ex-head{padding-right:12px}
+.cardio-name{gap:.3em}
+.cardio-name .nm{flex:none}
+.cardio-det{font-weight:500;color:var(--fg2)}
 .pill .bars{width:16px;height:16px;margin-right:1px}
 @media (prefers-reduced-motion:reduce){.marq.over{overflow-x:auto;scrollbar-width:none}}
 .legend{border-radius:var(--r-card);background:var(--tint)}
@@ -1701,15 +1704,13 @@ function Marquee({ children }) {
 
 const IntBars = ({ lv }) => html`<svg class="bars" viewBox="0 0 24 24" aria-hidden="true">${[[3, 14, 6], [10, 10, 10], [17, 6, 14]].map(([x, y, h], i) => html`<rect x=${x} y=${y} width="4.5" height=${h} rx="1.5" fill="currentColor" opacity=${i < lv ? 1 : 0.28} />`)}</svg>`;
 
-// nome em cima; intensidade (barrinhas: 1 leve, 2 moderada, 3 alta) e detalhes numa linha só.
-// A linha fica na coluna do nome, então nunca passa por baixo do timer/lápis.
+// "Tipo, detalhes" na linha do nome (detalhes em texto; se não couber, só eles deslizam)
+// e embaixo a intensidade com barrinhas (1 leve, 2 moderada, 3 alta).
 function CardioHead({ k }) {
+  const lv = INT_LV[k.intensity];
   return html`<div class="ex-head">
-    <span class="ex-name"><span class="nm">${cardioName(k)}</span></span>
-    ${(k.intensity || k.details) && html`<${Marquee}>
-      ${k.intensity && html`<span class="pill load">${INT_LV[k.intensity] ? html`<${IntBars} lv=${INT_LV[k.intensity]} />` : null}${k.intensity}</span>`}
-      ${k.details && html`<span class="pill reps">${k.details}</span>`}
-    <//>`}
+    <span class="ex-name cardio-name"><span class="nm">${cardioName(k)}${k.details ? ',' : ''}</span>${k.details && html`<${Marquee}><span class="cardio-det">${k.details}</span><//>`}</span>
+    ${k.intensity && html`<span class="ex-meta"><span class="pill load">${lv ? html`<${IntBars} lv=${lv} />` : null}${k.intensity}</span></span>`}
   </div>`;
 }
 
