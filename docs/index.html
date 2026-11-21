@@ -520,6 +520,37 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .day-items .pr .i{width:14px;height:14px}
 .day-items .w{font-weight:700;font-size:15px;text-align:right}
 .day-items .r{color:var(--fg2);text-align:right;font-size:14.5px}
+.novo-list{display:flex;flex-direction:column;gap:8px}
+.novo-opt{display:flex;align-items:center;gap:14px;padding:14px;border-radius:var(--r-row);background:var(--tint);text-align:left;width:100%}
+.novo-opt b{font-size:15.5px}
+.novo-ic{width:42px;height:42px;border-radius:12px;background:var(--tint2);display:grid;place-items:center;flex:none}
+.novo-ic .i{width:21px;height:21px}
+.btn.google{width:100%;background:var(--sheet);color:var(--fg);border:1px solid var(--line);gap:10px}
+.btn.google .g{width:20px;height:20px}
+.or{display:flex;align-items:center;gap:10px;color:var(--fg2);font-size:13px}
+.or::before,.or::after{content:"";flex:1;border-top:1px solid var(--hair)}
+.code-in{font-size:24px;font-weight:800;letter-spacing:.35em;text-align:center;font-stretch:90%}
+.btn:disabled{opacity:.45;cursor:default}
+.pick{display:flex;flex-direction:column;align-items:center;gap:4px;padding:26px 16px;border-radius:var(--r-card);border:1.5px dashed var(--hair);text-align:center;cursor:pointer}
+.pick .i{width:30px;height:30px;margin-bottom:6px}
+.pick b{font-size:16px}
+.reading{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 0 10px}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--tint2);border-top-color:var(--fg);animation:spin .8s linear infinite;margin-bottom:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.imp-warn{display:flex;gap:10px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--accent) 22%,transparent);font-size:14px;line-height:1.4}
+.imp-warn .i{width:18px;height:18px;flex:none;margin-top:1px}
+.imp-warn ul{display:flex;flex-direction:column;gap:4px}
+.imp-h{display:flex;align-items:center;gap:10px;padding:0 4px}
+.imp-check{width:26px;height:26px;border-radius:8px;border:2px solid var(--fg2);display:grid;place-items:center;flex:none;color:var(--on-ink)}
+.imp-check.on{background:var(--ink);border-color:var(--ink)}
+.imp-check .i{width:17px;height:17px;stroke-width:2.8}
+.imp-title{flex:1;min-width:0;font:inherit;font-weight:700;font-size:16px;background:none;border:0;border-bottom:1.5px solid transparent;padding:4px 0;color:var(--fg)}
+.imp-title:focus{outline:none;border-bottom-color:var(--fg)}
+.imp-w.off .sec-box{opacity:.4}
+.imp-w.off .imp-title{color:var(--fg2)}
+.imp-note{line-height:1.35}
+.imp-save{position:sticky;bottom:0;padding:14px 0 calc(6px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--screen-bg) 35%)}
+.imp-save .btn{width:100%}
 .empty{padding:28px 4px;color:var(--fg2);text-align:center;line-height:1.5}
 .set-group{display:flex;flex-direction:column;gap:2px;padding-bottom:12px;border-bottom:1px solid var(--hair)}
 .set-group:last-of-type{border-bottom:0}
@@ -651,6 +682,9 @@ const I = {
   dumbbell: icon(['M6.5 7v10', 'M17.5 7v10', 'M3.5 9.5v5', 'M20.5 9.5v5', 'M6.5 12h11']),
   chart: icon(['M4 19.5h16', 'M5 15l4.2-4.2 3.3 3.3L19 7.6']),
   trophy: icon(['M8 21h8', 'M12 17v4', 'M7 4h10v5a5 5 0 0 1-10 0z', 'M17 5h3v2a3 3 0 0 1-3 3', 'M7 5H4v2a3 3 0 0 0 3 3']),
+  camera: icon(['M4 8h3l2-2.5h6L17 8h3v11H4z', 'M12 10.5a3.2 3.2 0 1 0 0 6.4a3.2 3.2 0 1 0 0-6.4']),
+  warn: icon(['M12 4l9 16H3z', 'M12 10v4', 'M12 17v.1']),
+  user: icon(['M12 4a4 4 0 1 0 0 8a4 4 0 1 0 0-8', 'M4.5 20a7.5 7.5 0 0 1 15 0']),
   cal: icon(['M4 6.5h16v13H4z', 'M4 10.5h16', 'M8.5 4v4', 'M15.5 4v4']),
   arrowDown: icon(['M12 5v14', 'M6 13l6 6 6-6']),
   nodrop: icon(['M12 3.8s-5.8 6.3-5.8 10.2a5.8 5.8 0 0 0 11.6 0c0-3.9-5.8-10.2-5.8-10.2z', 'M4.5 4.5l15 15']),
@@ -1203,12 +1237,7 @@ function WorkoutCard({ w }) {
   const c = useCtx(); const { data } = c;
   const tabsRef = useDragScroll(!!w);
   useTabSort(tabsRef, !!w, (from, to) => c.up((d) => { d.workouts.splice(to, 0, d.workouts.splice(from, 1)[0]); }));
-  const newW = () => {
-    const id = uid();
-    c.up((d) => { d.workouts.push({ id, day: '', title: 'Novo treino', color: 'default', warmup: [], main: [], cardio: [] }); d.sel = id; });
-    c.go({ name: 'workout', id, edit: true });
-    c.openSheet({ type: 'meta', id, isNew: true });
-  };
+  const newW = () => c.openSheet({ type: 'novo' });
   const tabs = html`<div class="wtabs" role="tablist" aria-label="Treinos" ref=${tabsRef} onClick=${(ev) => ev.stopPropagation()}>
     ${data.workouts.map((x) => html`<button role="tab" key=${x.id} data-hsort="" aria-selected=${!!w && x.id === w.id} class=${'chip-sm' + (w && x.id === w.id ? ' sel' : '')} onClick=${(ev) => { ev.stopPropagation(); c.up((d) => { d.sel = x.id; }); }}>${x.day || x.title || 'Treino'}</button>`)}
     <button class="chip-sm" onClick=${(ev) => { ev.stopPropagation(); newW(); }}>${I.plus()} Novo</button>
@@ -1216,8 +1245,8 @@ function WorkoutCard({ w }) {
   if (!w) {
     return html`<article class="card" style=${cardStyle('default')}>
       <div class="card-head"><span class="eyebrow">Treino</span></div>
-      <p class="mut">Nenhum treino ainda. Monte o primeiro exercício por exercício.</p>
-      <button class="btn ink" onClick=${newW}>${I.plus()} Montar treino</button>
+      <p class="mut">Nenhum treino ainda. Importe a ficha por foto ou monte do zero.</p>
+      <button class="btn ink" onClick=${newW}>${I.plus()} Novo treino</button>
     </article>`;
   }
   const live = liveFor(data, w);
@@ -2380,7 +2409,7 @@ function ConfirmSheet({ title, text, label, onOk, cancel, tone }) {
 }
 
 function SheetHost({ s }) {
-  const map = { day: DaySheet, supp: SuppSheet, dietname: DietNameSheet, name: NameSheet, session: SessionSheet, exercise: ExerciseSheet, cardio: CardioSheet, meta: MetaSheet, color: ColorSheet, history: HistorySheet, meal: MealSheet, tech: TechSheet, confirm: ConfirmSheet };
+  const map = { novo: NovoSheet, impex: ImpExSheet, day: DaySheet, supp: SuppSheet, dietname: DietNameSheet, name: NameSheet, session: SessionSheet, exercise: ExerciseSheet, cardio: CardioSheet, meta: MetaSheet, color: ColorSheet, history: HistorySheet, meal: MealSheet, tech: TechSheet, confirm: ConfirmSheet };
   const C = map[s.type];
   return C ? html`<${C} key=${s.n} ...${s} />` : null;
 }
@@ -2628,6 +2657,19 @@ function NotifyRow() {
   </div>`;
 }
 
+function AccountRow() {
+  const c = useCtx();
+  const [s, setS] = useState(authGet);
+  const out = () => { authSet(null); setS(null); c.toast('Você saiu da conta'); };
+  return html`<section class="set-group" aria-label="Conta">
+    <h2 class="eyebrow">Conta</h2>
+    <div class="set-row">
+      <span>${s ? html`Conectado<span class="mut sm block">${s.email || 'Conta Google'}</span>` : html`Não conectado<span class="mut sm block">Entre para importar treinos por foto</span>`}</span>
+      ${s ? html`<button type="button" class="btn ghost" onClick=${out}>Sair</button>` : html`<button type="button" class="btn ghost" onClick=${() => c.openSheet({ type: 'novo', step: 'login' })}>Entrar</button>`}
+    </div>
+  </section>`;
+}
+
 function SettingsScreen() {
   const c = useCtx(); const s = c.data.settings;
   const set = (k, v) => c.up((d) => { d.settings[k] = v; });
@@ -2653,6 +2695,7 @@ function SettingsScreen() {
       <ul>${c.data.techniques.map((t) => html`<li key=${t.id}><button type="button" class="tech-row" onClick=${() => c.openSheet({ type: 'tech', tid: t.id })}><${Tq} t=${t} /><span><b>${t.name}</b><span class="mut sm block">${t.desc}</span></span>${I.chev()}</button></li>`)}</ul>
       <button type="button" class="add" onClick=${() => c.openSheet({ type: 'tech' })}>${I.plus()} Nova técnica</button>
     </section>
+    <${AccountRow} />
     <section class="set-group" aria-label="Dados">
       <h2 class="eyebrow">Dados</h2>
       <p class="mut sm">Os dados ficam salvos só neste aparelho. Exporte um backup de vez em quando e guarde no Drive ou no WhatsApp.</p>
@@ -2668,6 +2711,248 @@ function SettingsScreen() {
     </section>
     <p class="foot mut sm">Ficha · protótipo 0.1</p>
   </div></div>`;
+}
+
+/* ================= conta (Supabase) e importação de ficha por foto ================= */
+// A URL e a chave publicável do Supabase são públicas (vão em todo app que usa Supabase).
+// A chave da Anthropic fica só no servidor, na Edge Function importar-treino.
+const SB_URL = 'https://yskwmincfymojicocgjz.supabase.co';
+const SB_KEY = 'sb_publishable_POSX65AKDjMYRqXO8yeKng_LPgEt5U_';
+const AUTH_KEY = 'ficha:auth';
+const PENDING_KEY = 'ficha:pending';
+const authGet = () => { try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || null; } catch (e) { return null; } };
+const authSet = (s) => { try { if (s) localStorage.setItem(AUTH_KEY, JSON.stringify(s)); else localStorage.removeItem(AUTH_KEY); } catch (e) {} };
+const jwtEmail = (t) => { try { const p = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); return JSON.parse(atob(p + '='.repeat((4 - (p.length % 4)) % 4))).email || ''; } catch (e) { return ''; } };
+const toSession = (r, email) => ({
+  access_token: r.access_token, refresh_token: r.refresh_token,
+  expires_at: Number(r.expires_at) || Math.floor(Date.now() / 1000) + Number(r.expires_in || 3600),
+  email: (r.user && r.user.email) || email || jwtEmail(r.access_token),
+});
+async function sbAuth(path, body) {
+  const res = await fetch(`${SB_URL}/auth/v1/${path}`, { method: 'POST', headers: { apikey: SB_KEY, 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(j.msg || j.error_description || j.message || 'erro'); e.status = res.status; e.code = j.error_code || j.code; throw e; }
+  return j;
+}
+// sessão válida (renova o token se estiver vencendo); null = precisa entrar
+async function freshSession() {
+  const s = authGet();
+  if (!s) return null;
+  if (s.expires_at - 60 > Date.now() / 1000) return s;
+  try { const n = toSession(await sbAuth('token?grant_type=refresh_token', { refresh_token: s.refresh_token }), s.email); authSet(n); return n; }
+  catch (e) { if (e.status >= 400 && e.status < 500) authSet(null); return null; }
+}
+// volta do "Entrar com Google": o Supabase devolve os tokens no endereço (#access_token=...)
+function readAuthHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (!p.get('access_token') && !p.get('error')) return null;
+  history.replaceState(null, '', location.pathname + location.search);
+  if (p.get('error')) return { error: p.get('error_description') || p.get('error') };
+  const s = toSession({ access_token: p.get('access_token'), refresh_token: p.get('refresh_token'), expires_at: p.get('expires_at'), expires_in: p.get('expires_in') });
+  authSet(s);
+  return { email: s.email };
+}
+const googleLogin = () => {
+  try { localStorage.setItem(PENDING_KEY, 'import'); } catch (e) {}
+  location.href = `${SB_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(location.origin + location.pathname)}`;
+};
+const loginError = (e) => (e.status === 429 || e.code === 'over_email_send_rate_limit'
+  ? 'Muitos e-mails em pouco tempo. Espere alguns minutos ou entre com o Google.'
+  : e.code === 'otp_expired' || e.status === 403 ? 'Código errado ou vencido. Confira ou peça outro.'
+  : 'Não deu para entrar agora. Confira a internet e tente de novo.');
+
+// foto do celular: reduz para no máximo 1568 px no lado maior (o que o Claude usa) e manda em JPEG
+async function shrinkImage(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no(new Error('Não deu para abrir essa imagem.')); i.src = url; });
+    const k = Math.min(1, 1568 / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
+    const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(img, 0, 0, cv.width, cv.height);
+    return cv.toDataURL('image/jpeg', 0.86).split(',')[1];
+  } finally { URL.revokeObjectURL(url); }
+}
+async function readPlan(file) {
+  const needLogin = () => Object.assign(new Error('login'), { login: true });
+  const s = await freshSession();
+  if (!s) throw needLogin();
+  const image = await shrinkImage(file);
+  let res;
+  try {
+    res = await fetch(`${SB_URL}/functions/v1/importar-treino`, { method: 'POST', headers: { apikey: SB_KEY, authorization: `Bearer ${s.access_token}`, 'content-type': 'application/json' }, body: JSON.stringify({ image, media_type: 'image/jpeg' }) });
+  } catch (e) { throw new Error('Sem conexão. A leitura da ficha precisa de internet.'); }
+  const j = await res.json().catch(() => ({}));
+  if (res.status === 401) { authSet(null); throw needLogin(); }
+  if (!res.ok) throw new Error(j.error ? j.error[0].toUpperCase() + j.error.slice(1) + '.' : 'Não deu para ler a ficha agora.');
+  return j.plan;
+}
+
+const GOOGLE_G = html`<svg class="g" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
+
+// "Novo treino": importar pela IA ou montar do zero. Também faz o login quando precisa.
+function NovoSheet({ step: first }) {
+  const c = useCtx();
+  const [step, setStep] = useState(first || 'menu'); // menu | login | code | photo | reading | error
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+  const alive = useRef(true);
+  useEffect(() => () => { alive.current = false; }, []);
+  const toImport = () => { setMsg(''); setStep(authGet() ? 'photo' : 'login'); };
+  const sendCode = async () => {
+    const em = email.trim();
+    if (!/^\S+@\S+\.\S+$/.test(em)) { setMsg('Digite um e-mail válido.'); return; }
+    setBusy(true); setMsg('');
+    try { await sbAuth('otp', { email: em, create_user: true }); if (alive.current) { setCode(''); setStep('code'); } }
+    catch (e) { if (alive.current) setMsg(loginError(e)); }
+    if (alive.current) setBusy(false);
+  };
+  const verify = async () => {
+    setBusy(true); setMsg('');
+    try { const r = await sbAuth('verify', { type: 'email', email: email.trim(), token: code }); authSet(toSession(r, email.trim())); if (alive.current) setStep('photo'); }
+    catch (e) { if (alive.current) setMsg(loginError(e)); }
+    if (alive.current) setBusy(false);
+  };
+  const pick = async (ev) => {
+    const f = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!f) return;
+    setStep('reading'); setMsg('');
+    try {
+      const plan = await readPlan(f);
+      if (!alive.current) return;
+      if (!plan || !plan.workouts.length) { setMsg((plan && plan.warnings[0]) || 'Não encontrei nenhum treino nessa imagem.'); setStep('error'); return; }
+      c.go({ name: 'import', plan });
+    } catch (e) {
+      if (!alive.current) return;
+      if (e.login) { setMsg('Sua sessão venceu. Entre de novo.'); setStep('login'); return; }
+      setMsg(e.message); setStep('error');
+    }
+  };
+  const titles = { menu: 'Novo treino', login: 'Entrar para importar', code: 'Digite o código', photo: 'Importar ficha', reading: 'Lendo a ficha', error: 'Não deu certo' };
+  const opt = (icon, t, s, on) => html`<button type="button" class="novo-opt" onClick=${on}><span class="novo-ic">${icon}</span><span><b>${t}</b><span class="mut sm block">${s}</span></span></button>`;
+  return html`<${Sheet} title=${titles[step]}>
+    ${step === 'menu' && html`<div class="novo-list">
+      ${opt(I.camera(), 'Importar de foto ou print', 'A IA lê a ficha e monta os treinos', toImport)}
+      ${opt(I.plus(), 'Montar do zero', 'Começa vazio, exercício por exercício', () => c.newWorkout())}
+    </div>`}
+    ${step === 'login' && html`
+      ${msg && html`<span class="err">${msg}</span>`}
+      <button type="button" class="btn google" onClick=${googleLogin}>${GOOGLE_G}Entrar com Google</button>
+      <div class="or"><span>ou receba um código por e-mail</span></div>
+      <div class="field"><label for="lg-email">E-mail</label><input id="lg-email" class="txt" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" value=${email} onInput=${(ev) => setEmail(ev.target.value)} onKeyDown=${(ev) => { if (ev.key === 'Enter') sendCode(); }} /></div>
+      <div class="sheet-actions"><button type="button" class="btn ghost grow" disabled=${busy} onClick=${sendCode}>${busy ? 'Enviando…' : 'Enviar código'}</button></div>`}
+    ${step === 'code' && html`
+      <p class="mut" style="margin:-6px 0 0">Enviamos um código para <b>${email.trim()}</b>.</p>
+      <div class="field"><label for="lg-code">Código</label><input id="lg-code" class="txt code-in num" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="000000" value=${code} onInput=${(ev) => setCode(ev.target.value.replace(/\D/g, ''))} onKeyDown=${(ev) => { if (ev.key === 'Enter' && code.length >= 6) verify(); }} />${msg && html`<span class="err">${msg}</span>`}</div>
+      <div class="sheet-actions">
+        <button type="button" class="btn ghost" onClick=${() => { setMsg(''); setStep('login'); }}>Trocar e-mail</button>
+        <button type="button" class="btn ink grow" disabled=${busy || code.length < 6} onClick=${verify}>${busy ? 'Entrando…' : 'Entrar'}</button>
+      </div>`}
+    ${step === 'photo' && html`
+      <label class="pick">${I.camera()}<b>Escolher foto ou print</b><span class="mut sm">Tire uma foto da ficha ou escolha da galeria</span>
+        <input type="file" accept="image/*" hidden onChange=${pick} /></label>`}
+    ${step === 'reading' && html`<div class="reading"><span class="spin" aria-hidden="true"></span><b>Lendo a ficha…</b><span class="mut sm">Leva uns 10 segundos</span></div>`}
+    ${step === 'error' && html`
+      <p class="confirm-t">${msg}</p>
+      <div class="sheet-actions"><button type="button" class="btn ghost" onClick=${c.closeSheet}>Fechar</button><button type="button" class="btn ink grow" onClick=${() => setStep('photo')}>Tentar outra foto</button></div>`}
+  <//>`;
+}
+
+// leitura da IA -> rascunhos editáveis (nada é salvo até tocar em Salvar)
+const IMPORT_COLORS = ['storm', 'peach', 'fog', 'blossom', 'sage', 'sand', 'dusk', 'coral', 'mint', 'clay'];
+function planToDrafts(plan, rest) {
+  return plan.workouts.map((w, i) => ({
+    key: uid(), on: true, title: (w.title || `Treino ${i + 1}`).trim(), day: DAYS.includes(w.day) ? w.day : '', color: IMPORT_COLORS[i % IMPORT_COLORS.length],
+    ex: w.exercises.map((e) => {
+      const known = (CAT_MAP.get(norm(e.name)) || {}).name;
+      const guess = e.repsMin == null && e.repsMax == null;
+      const min = guess ? 10 : Math.max(1, e.repsMin ?? e.repsMax), max = guess ? 12 : Math.max(min, e.repsMax ?? e.repsMin);
+      return { id: uid(), name: known || e.name.trim(), sets: Math.max(1, e.sets || 3), min, max, w: e.loadKg ?? null, rest: e.restSec ?? rest, note: e.note || '', guess };
+    }),
+  }));
+}
+
+function ImportScreen({ plan }) {
+  const c = useCtx();
+  const [drafts, setDrafts] = useState(() => planToDrafts(plan, c.data.settings.rest));
+  const setD = (key, fn) => setDrafts((ds) => ds.map((d) => (d.key === key ? fn({ ...d }) : d)));
+  const chosen = drafts.filter((d) => d.on && d.ex.length);
+  const nEx = drafts.reduce((n, d) => n + d.ex.length, 0);
+  const notes = [...(plan.warnings || [])];
+  if (plan.cut && !notes.some((t) => /cortad/i.test(t))) notes.unshift('A imagem parece cortada. Confira se falta algum exercício.');
+  if (drafts.some((d) => d.ex.some((e) => e.guess))) notes.push('A ficha não traz repetições em alguns exercícios; coloquei 10–12 para você ajustar.');
+  const editEx = (d, e) => c.openSheet({ type: 'impex', ex: e,
+    onSave: (n) => setD(d.key, (x) => ({ ...x, ex: x.ex.map((k) => (k.id === n.id ? n : k)) })),
+    onDelete: () => setD(d.key, (x) => ({ ...x, ex: x.ex.filter((k) => k.id !== e.id) })) });
+  const save = () => {
+    if (!chosen.length) return;
+    const ids = chosen.map(() => uid());
+    c.up((d) => {
+      d.customEx = d.customEx || [];
+      chosen.forEach((dr, i) => {
+        const main = dr.ex.map((e) => {
+          const name = (CAT_MAP.get(norm(e.name)) || {}).name || e.name.trim();
+          if (!CAT_MAP.has(norm(name)) && !d.customEx.some((n) => norm(n) === norm(name))) d.customEx.push(name);
+          return { id: uid(), name, techs: [], group: groupOf(name), sets: e.sets, min: e.min, max: e.max, last: { w: e.w, reps: [] }, rest: e.rest };
+        });
+        d.workouts.push({ id: ids[i], day: dr.day, title: dr.title.trim() || 'Treino importado', color: dr.color, warmup: [], main, cardio: [] });
+      });
+      d.sel = ids[0];
+    });
+    c.home();
+    c.toast(chosen.length === 1 ? 'Treino importado' : `${chosen.length} treinos importados`);
+  };
+  return html`<div class="screen"><div class="wrap">
+    <${TopBar} />
+    <h1 class="page-title">Conferir importação</h1>
+    <p class="page-sub">${drafts.length} ${drafts.length === 1 ? 'treino' : 'treinos'} · ${nEx} ${nEx === 1 ? 'exercício' : 'exercícios'}</p>
+    ${notes.length > 0 && html`<div class="imp-warn" role="note">${I.warn()}<ul>${notes.map((t) => html`<li>${t}</li>`)}</ul></div>`}
+    ${drafts.map((d) => html`<section class=${'sec imp-w' + (d.on ? '' : ' off')} key=${d.key} aria-label=${d.title}>
+      <div class="imp-h">
+        <button type="button" class=${'imp-check' + (d.on ? ' on' : '')} role="checkbox" aria-checked=${d.on} aria-label=${'Salvar ' + d.title} onClick=${() => setD(d.key, (x) => ({ ...x, on: !x.on }))}>${d.on && I.check()}</button>
+        <input class="imp-title" aria-label="Nome do treino" value=${d.title} onInput=${(ev) => { const v = ev.target.value; setD(d.key, (x) => ({ ...x, title: v })); }} />
+        ${d.day && html`<span class="pill">${d.day}</span>`}
+        <span class="count num">${d.ex.length}</span>
+      </div>
+      <div class="sec-box" style=${`background:var(--c-${d.color})`}>
+        ${!d.ex.length && html`<p class="mut sm" style="text-align:center;padding:8px">Sem exercícios.</p>`}
+        ${d.ex.map((e) => html`<div class="ex editing" key=${e.id}><div class="ex-top">
+          <div class="ex-head">
+            <span class="ex-name"><span class="nm">${e.name}</span></span>
+            <span class="ex-meta"><span class="pill scheme num">${scheme(e)}</span><span class="pill load num">${kg(e.w)}</span><span class="pill reps num">${fmtTime(e.rest)}</span></span>
+            ${e.note && html`<span class="mut sm imp-note">${e.note}</span>`}
+          </div>
+          <button type="button" class="ib ex-edit" aria-label=${'Editar ' + e.name} onClick=${() => editEx(d, e)}>${I.edit()}</button>
+        </div></div>`)}
+      </div>
+    </section>`)}
+    <div class="imp-save"><button type="button" class="btn ink" disabled=${!chosen.length} onClick=${save}>${I.check()}${chosen.length ? `Salvar ${chosen.length} ${chosen.length === 1 ? 'treino' : 'treinos'}` : 'Marque um treino'}</button></div>
+  </div></div>`;
+}
+
+// editar um exercício lido pela IA, antes de salvar
+function ImpExSheet({ ex, onSave, onDelete }) {
+  const c = useCtx();
+  const [f, setF] = useState(() => ({ ...ex }));
+  const [del, setDel] = useState(false);
+  const S = (k, v) => setF((p) => ({ ...p, [k]: v }));
+  const save = () => { const name = f.name.trim(); onSave({ ...f, name: name || ex.name, max: Math.max(f.min, f.max), guess: false }); c.closeSheet(); };
+  const remove = () => { if (!del) { setDel(true); return; } onDelete(); c.closeSheet(); };
+  return html`<${Sheet} title="Editar exercício" watch=${f} onSave=${save}>
+    <div class="field"><label for="ie-name">Nome do exercício</label><input id="ie-name" class="txt" autocomplete="off" value=${f.name} onInput=${(ev) => S('name', ev.target.value)} /></div>
+    <div class="field"><label for="ie-sets">Séries</label><${Stepper} id="ie-sets" value=${f.sets} min=${1} max=${20} label="séries" onChange=${(v) => S('sets', v)} /></div>
+    <div class="field"><span class="flabel">Repetições por série</span><div class="row"><${Stepper} id="ie-min" value=${f.min} min=${1} max=${100} label="repetições mínimas" onChange=${(v) => setF((p) => ({ ...p, min: v, max: Math.max(v, p.max) }))} /><span class="mut">até</span><${Stepper} value=${f.max} min=${1} max=${100} label="repetições máximas" onChange=${(v) => setF((p) => ({ ...p, max: v, min: Math.min(v, p.min) }))} /></div></div>
+    <div class="field"><label for="ie-w">Carga</label><${Stepper} id="ie-w" value=${f.w} step=${2.5} min=${0} max=${500} decimals=${1} unit="kg" label="carga" onChange=${(v) => S('w', v)} /></div>
+    <div class="field"><label for="ie-rest">Descanso entre séries</label><${Stepper} id="ie-rest" value=${f.rest} step=${15} min=${0} max=${600} unit="s" label="descanso" onChange=${(v) => S('rest', v)} /></div>
+    ${f.note && html`<p class="mut sm" style="margin:-6px 0 0">Na ficha: ${f.note}</p>`}
+    <div class="sheet-actions">
+      <button type="button" class=${'btn ghost danger' + (del ? ' armed' : '')} onClick=${remove}>${I.trash()}${del ? 'Confirmar' : 'Remover'}</button>
+      <button type="button" class="btn ink grow" onClick=${save}>Salvar</button>
+    </div>
+  <//>`;
 }
 
 /* ================= app ================= */
@@ -2746,17 +3031,34 @@ function App({ hot }) {
   };
   const askDiscard = () => openSheet({ type: 'confirm', title: 'Descartar treino de hoje?', text: 'O treino não será salvo no histórico.', label: 'Descartar', onOk: () => { up((d) => { d.live = null; }); stopTimer(); } });
   const replace = (d) => { setData(d); setTimer(null); home(); };
+  const newWorkout = () => {
+    const id = uid();
+    up((d) => { d.workouts.push({ id, day: '', title: 'Novo treino', color: 'default', warmup: [], main: [], cardio: [] }); d.sel = id; });
+    go({ name: 'workout', id, edit: true });
+    openSheet({ type: 'meta', id, isNew: true });
+  };
+  // voltou do "Entrar com Google": guarda a sessão e segue para a importação
+  useEffect(() => {
+    const r = readAuthHash();
+    if (!r) return;
+    let pending = null;
+    try { pending = localStorage.getItem(PENDING_KEY); localStorage.removeItem(PENDING_KEY); } catch (e) {}
+    if (r.error) { toast('Não deu para entrar com o Google'); return; }
+    toast(r.email ? `Entrou como ${r.email}` : 'Entrou');
+    if (pending === 'import') openSheet({ type: 'novo', step: 'photo' });
+  }, []);
   const deleteWorkout = (id) => {
     up((d) => { d.workouts = d.workouts.filter((x) => x.id !== id); if (d.live && d.live.wid === id) d.live = null; if (d.sel === id) d.sel = d.workouts[0] ? d.workouts[0].id : null; });
     home(); toast('Treino excluído');
   };
 
-  const ctx = { data, up, route, go, back, home, openSheet, closeSheet, sheetClosing: !!(sheet && sheet.closing), timer, setTimer, startTimer, stopTimer, toast, finish, askDiscard, replace, deleteWorkout };
+  const ctx = { data, up, route, go, back, home, openSheet, closeSheet, sheetClosing: !!(sheet && sheet.closing), timer, setTimer, startTimer, stopTimer, toast, finish, askDiscard, replace, newWorkout, deleteWorkout };
   let screen;
   if (route.name === 'workout') screen = html`<${WorkoutScreen} key=${route.id} id=${route.id} startEdit=${route.edit} />`;
   else if (route.name === 'diet') screen = html`<${DietScreen} />`;
   else if (route.name === 'progress') screen = html`<${ProgressScreen} />`;
   else if (route.name === 'settings') screen = html`<${SettingsScreen} />`;
+  else if (route.name === 'import') screen = html`<${ImportScreen} key=${route.n || 0} plan=${route.plan} />`;
   else screen = html`<${Home} />`;
 
   return html`<${Ctx.Provider} value=${ctx}>
