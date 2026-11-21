@@ -1,6 +1,6 @@
 # ficha-treino
 
-App de celular para anotar o **treino da academia** e a **dieta**, com progressão de carga, registro de reps por série, cronômetro de descanso e histórico.
+App de celular para anotar o **treino da academia** e a **dieta**, com progressão de carga, registro de reps por série, cronômetro de descanso e uma tela de progresso (calendário dos dias treinados, recordes e evolução de carga por exercício).
 
 > Nome provisório. O nome do app (hoje chamado de "Ficha") e do repositório pode mudar depois.
 
