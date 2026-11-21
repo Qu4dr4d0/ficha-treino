@@ -24,7 +24,7 @@
   --bg:#ffffff; --fg:#202124; --fg2:#5f6368; --fg3:#80868b;
   --line:#dadce0; --hair:rgba(32,33,36,.16); --tint:rgba(32,33,36,.055); --tint2:rgba(32,33,36,.095);
   --ink:#202124; --on-ink:#ffffff; --sheet:#ffffff; --scrim:rgba(32,33,36,.42);
-  --good:#137333; --on-good:#ffffff; --good-soft:rgba(19,115,51,.14);
+  --good:#137333; --on-good:#ffffff; --good-soft:rgba(19,115,51,.14); --done-bg:rgba(206,234,214,.92);
   --danger:#c5221f; --accent:#f9ab00; --on-accent:#202124; --ring:#fbbc04;
   --shadow:0 1px 3px rgba(60,64,67,.22),0 8px 22px rgba(60,64,67,.18);
   --c-default:#ffffff; --c-coral:#faafa8; --c-peach:#f39f76; --c-sand:#fff8b8; --c-mint:#e2f6d3; --c-sage:#b4ddd3; --c-fog:#d4e4ed; --c-storm:#aeccdc; --c-dusk:#d3bfdb; --c-blossom:#f6e2dd; --c-clay:#e9e3d4; --c-chalk:#efeff1;
@@ -39,7 +39,7 @@
     --bg:#202124; --fg:#e8eaed; --fg2:#9aa0a6; --fg3:#80868b;
     --line:#5f6368; --hair:rgba(232,234,237,.18); --tint:rgba(232,234,237,.065); --tint2:rgba(232,234,237,.11);
     --ink:#e8eaed; --on-ink:#202124; --sheet:#2d2e31; --scrim:rgba(0,0,0,.6);
-    --good:#81c995; --on-good:#202124; --good-soft:rgba(129,201,149,.18);
+    --good:#81c995; --on-good:#202124; --good-soft:rgba(129,201,149,.18); --done-bg:rgba(129,201,149,.24);
     --danger:#f28b82; --accent:#fdd663; --on-accent:#202124; --ring:#e37400;
     --shadow:0 2px 6px rgba(0,0,0,.45),0 10px 26px rgba(0,0,0,.4);
     --c-default:#202124; --c-coral:#77172e; --c-peach:#692b17; --c-sand:#7c4a03; --c-mint:#264d3b; --c-sage:#0c625d; --c-fog:#256377; --c-storm:#284255; --c-dusk:#472e5b; --c-blossom:#6c394f; --c-clay:#4b443a; --c-chalk:#232427;
@@ -50,7 +50,7 @@
   --bg:#202124; --fg:#e8eaed; --fg2:#9aa0a6; --fg3:#80868b;
   --line:#5f6368; --hair:rgba(232,234,237,.18); --tint:rgba(232,234,237,.065); --tint2:rgba(232,234,237,.11);
   --ink:#e8eaed; --on-ink:#202124; --sheet:#2d2e31; --scrim:rgba(0,0,0,.6);
-  --good:#81c995; --on-good:#202124; --good-soft:rgba(129,201,149,.18);
+  --good:#81c995; --on-good:#202124; --good-soft:rgba(129,201,149,.18); --done-bg:rgba(129,201,149,.24);
   --danger:#f28b82; --accent:#fdd663; --on-accent:#202124; --ring:#e37400;
   --shadow:0 2px 6px rgba(0,0,0,.45),0 10px 26px rgba(0,0,0,.4);
   --c-default:#202124; --c-coral:#77172e; --c-peach:#692b17; --c-sand:#7c4a03; --c-mint:#264d3b; --c-sage:#0c625d; --c-fog:#256377; --c-storm:#284255; --c-dusk:#472e5b; --c-blossom:#6c394f; --c-clay:#4b443a; --c-chalk:#232427;
@@ -251,7 +251,7 @@ ul{list-style:none}
 .swipe-bg .i{width:20px;height:20px;stroke-width:2.6}
 .swipe.left .swipe-bg{justify-content:flex-end;background:var(--fg3);color:var(--bg)}
 .swipe-fg{position:relative;border-radius:var(--r-row);background:var(--screen-bg);will-change:transform}
-.ex-done{display:flex;align-items:center;gap:10px;padding:12px 14px;background:color-mix(in srgb,var(--good) 24%,transparent);animation:chipIn .25s ease-out}
+.ex-done{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--done-bg);animation:chipIn .25s ease-out}
 .ex-done .ok{color:var(--good);display:grid}
 .ex-done .ok .i{width:18px;height:18px;stroke-width:2.8}
 .ex-done .nm{flex:1;min-width:0;font-weight:600;font-size:15px;color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -427,7 +427,6 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .item-ed .ib .i{width:18px;height:18px}
 /* campos dos editores no mesmo estilo dos controles do treino: contorno fino, sem fundo escuro */
 .sheet .txt{background:none;border-color:var(--hair)}
-.sheet textarea.txt{background:var(--tint)}
 .sheet .txt:focus{outline-color:var(--fg)}
 .item-ed .txt{height:40px;border-radius:999px;padding:0 14px}
 .item-ed .txt:first-child{font-family:var(--font-num);font-weight:700;font-stretch:85%;font-size:15.5px;text-align:center;padding:0 8px}
