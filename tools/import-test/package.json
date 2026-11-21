@@ -1,0 +1,7 @@
+{
+  "name": "ficha-import-test",
+  "private": true,
+  "type": "module",
+  "description": "Teste de leitura de fichas de treino por foto com Claude Haiku 5.5",
+  "dependencies": { "@anthropic-ai/sdk": "*", "zod": "*" }
+}
