@@ -69,6 +69,30 @@ MANIFEST = {
 }
 
 
+# Cabeçalhos para o Cloudflare Pages (arquivo docs/_headers).
+# Página, service worker e manifest sempre conferem se há versão nova; ícones e a biblioteca ficam em cache.
+HEADERS = """/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), payment=()
+  X-Frame-Options: DENY
+  Strict-Transport-Security: max-age=31536000
+
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+/icons/*
+  Cache-Control: public, max-age=604800
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+"""
+
+
 def main():
     app = SRC.read_text(encoding='utf-8')
     assert CDN in app, 'import da biblioteca não encontrado em src/app.html'
@@ -84,6 +108,7 @@ def main():
     sw = (ROOT / 'tools' / 'sw.template.js').read_text(encoding='utf-8').replace('__VERSION__', version)
     (OUT / 'sw.js').write_text(sw, encoding='utf-8')
     (OUT / '.nojekyll').write_text('', encoding='utf-8')
+    (OUT / '_headers').write_text(HEADERS, encoding='utf-8')
     print(f'docs/ gerado (versão {version})')
 
 

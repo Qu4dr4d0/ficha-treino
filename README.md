@@ -69,3 +69,7 @@ Limitações:
 1. Ajustar o design do protótipo até ficar bom.
 2. Trocar o `localStorage` por IndexedDB e adicionar exportar/importar backup.
 3. Depois: calcular macros e kcal da dieta, e talvez empacotar o app para a Play Store.
+
+## Publicação (Cloudflare Pages)
+
+O site publicado é a pasta `docs/`, gerada por `python3 tools/build.py`. No Cloudflare: Workers & Pages → criar projeto ligado ao GitHub → branch `main`, sem comando de build, pasta de saída `docs`. Cada push na `main` publica; outras branches ganham um link de teste. O `docs/_headers` define cache e cabeçalhos de segurança. Domínio: `treinota.com.br`.
