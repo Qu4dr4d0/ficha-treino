@@ -1,4 +1,4 @@
-# Supabase do Ficha
+# Supabase do Treinota
 
 Servidor do app: login e a função que lê fichas de treino por foto com o Claude.
 A chave da Anthropic fica só aqui, como segredo do projeto; o app nunca a recebe.

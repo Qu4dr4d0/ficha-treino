@@ -1,6 +1,6 @@
 {
-  "name": "Ficha",
-  "short_name": "Ficha",
+  "name": "Treinota",
+  "short_name": "Treinota",
   "description": "Treino e dieta com progressão de carga e cronômetro de descanso.",
   "lang": "pt-BR",
   "start_url": "./",

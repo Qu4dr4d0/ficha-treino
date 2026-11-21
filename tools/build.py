@@ -29,7 +29,10 @@ HEAD = """<!doctype html>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Treinota">
+<meta name="application-name" content="Treinota">
 <link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/logo.svg" type="image/svg+xml">
 <link rel="icon" href="./icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
@@ -48,8 +51,8 @@ if ('serviceWorker' in navigator) {
 """
 
 MANIFEST = {
-    'name': 'Ficha',
-    'short_name': 'Ficha',
+    'name': 'Treinota',
+    'short_name': 'Treinota',
     'description': 'Treino e dieta com progressão de carga e cronômetro de descanso.',
     'lang': 'pt-BR',
     'start_url': './',

@@ -1,8 +1,8 @@
-# ficha-treino
+# Treinota
 
 App de celular para anotar o **treino da academia** e a **dieta**, com progressão de carga, registro de reps por série, cronômetro de descanso e uma tela de progresso (calendário dos dias treinados, recordes e evolução de carga por exercício).
 
-> Nome provisório. O nome do app (hoje chamado de "Ficha") e do repositório pode mudar depois.
+> O app se chama **Treinota** (treino + nota). O repositório ainda tem o nome antigo, `ficha-treino`. Os dados salvos no aparelho continuam na chave `ficha:v1`, para não perder o que já existe.
 
 ## Por que existe
 

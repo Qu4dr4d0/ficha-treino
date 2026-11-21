@@ -7,13 +7,16 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Treinota">
+<meta name="application-name" content="Treinota">
 <link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/logo.svg" type="image/svg+xml">
 <link rel="icon" href="./icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
 </head>
 <body>
-<title>Ficha Treino e Dieta</title>
+<title>Treinota</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -522,7 +525,7 @@ textarea.txt{height:auto;min-height:84px;padding:12px 14px;resize:vertical;line-
 .day-items .r{color:var(--fg2);text-align:right;font-size:14.5px}
 .login .wrap{min-height:100dvh;justify-content:center;max-width:420px;gap:14px;padding-bottom:40px}
 .login-top{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;margin-bottom:14px}
-.login-logo{width:72px;height:72px;border-radius:20px;margin-bottom:12px;box-shadow:0 0 0 1px var(--hair)}
+.login-logo{width:76px;height:76px;margin-bottom:12px;filter:drop-shadow(0 3px 8px rgba(0,0,0,.25))}
 .login-top .page-sub{margin-top:4px}
 .login .btn{width:100%}
 .login .sheet-actions .btn{width:auto}
@@ -1351,7 +1354,7 @@ function Home() {
   const w = data.workouts.find((x) => x.id === data.sel) || data.workouts[0];
   return html`<div class="screen"><div class="wrap">
     <header class="home-top">
-      <button type="button" class="brand" aria-label="Editar nome da ficha" onClick=${() => c.openSheet({ type: 'name' })}><span>${data.name || 'Ficha'}</span><span class="brand-ed">${I.edit()}</span></button>
+      <button type="button" class="brand" aria-label="Editar nome da ficha" onClick=${() => c.openSheet({ type: 'name' })}><span>${data.name || 'Treinota'}</span><span class="brand-ed">${I.edit()}</span></button>
       <div class="home-icons">
         <button class="ib" aria-label="Progresso" onClick=${() => c.go({ name: 'progress' })}>${I.chart()}</button>
         <button class="ib" aria-label="Ajustes" onClick=${() => c.go({ name: 'settings' })}>${I.sliders()}</button>
@@ -1926,7 +1929,7 @@ function NameSheet() {
   const [v, setV] = useState(c.data.name || '');
   const save = () => { c.up((d) => { d.name = v.trim(); }); c.closeSheet(); };
   return html`<${Sheet} title="Nome da ficha" watch=${v} onSave=${save}>
-    <div class="field"><label for="nm-ficha">Nome</label><input id="nm-ficha" class="txt" autocomplete="off" maxlength="40" placeholder="Ex.: Ficha do João" value=${v} onInput=${(ev) => setV(ev.target.value)} onKeyDown=${(ev) => { if (ev.key === 'Enter') save(); }} /><span class="mut sm">Aparece no topo da tela inicial. Em branco, fica "Ficha".</span></div>
+    <div class="field"><label for="nm-ficha">Nome</label><input id="nm-ficha" class="txt" autocomplete="off" maxlength="40" placeholder="Ex.: Ficha do João" value=${v} onInput=${(ev) => setV(ev.target.value)} onKeyDown=${(ev) => { if (ev.key === 'Enter') save(); }} /><span class="mut sm">Aparece no topo da tela inicial. Em branco, fica "Treinota".</span></div>
     <div class="sheet-actions"><button type="button" class="btn ink grow" onClick=${save}>Salvar</button></div>
   <//>`;
 }
@@ -2626,11 +2629,11 @@ function ProgressScreen() {
 
 // ---------- backup ----------
 async function exportBackup(data, toast) {
-  const name = `ficha-backup-${todayISO()}.json`;
-  const blob = new Blob([JSON.stringify({ app: 'ficha', exportedAt: new Date().toISOString(), data }, null, 1)], { type: 'application/json' });
+  const name = `treinota-backup-${todayISO()}.json`;
+  const blob = new Blob([JSON.stringify({ app: 'treinota', exportedAt: new Date().toISOString(), data }, null, 1)], { type: 'application/json' });
   try {
     const file = new File([blob], name, { type: 'application/json' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Backup do Ficha' }); toast('Backup pronto'); return; }
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Backup do Treinota' }); toast('Backup pronto'); return; }
   } catch (e) { if (e && e.name === 'AbortError') return; }
   try {
     const url = URL.createObjectURL(blob);
@@ -2644,7 +2647,7 @@ function importBackup(file, c) {
   r.onload = () => {
     let d = null;
     try { const j = JSON.parse(r.result); d = j && j.data ? j.data : j; } catch (e) {}
-    if (!d || d.v !== 1 || !Array.isArray(d.workouts) || !d.diet) { c.toast('Esse arquivo não é um backup do Ficha'); return; }
+    if (!d || d.v !== 1 || !Array.isArray(d.workouts) || !d.diet) { c.toast('Esse arquivo não é um backup do Treinota'); return; }
     const when = (() => { try { return JSON.parse(r.result).exportedAt?.slice(0, 10); } catch (e) { return null; } })();
     c.openSheet({ type: 'confirm', title: 'Restaurar este backup?', text: `${when ? `Backup de ${fmtShort(when)}. ` : ''}Os treinos, a dieta e o histórico atuais serão substituídos pelos do arquivo.`, label: 'Restaurar', onOk: () => { c.replace(loadData(d)); c.toast('Backup restaurado'); } });
   };
@@ -2656,7 +2659,7 @@ function NotifyRow() {
   const [perm, setPerm] = useState(() => (canNotify() ? Notification.permission : 'unsupported'));
   const ask = async () => { try { setPerm(await Notification.requestPermission()); } catch (e) {} };
   const hint = perm === 'granted' ? 'Ativado: quando o app estiver fora da tela, o fim do descanso chega como notificação, com vibração.'
-    : perm === 'denied' ? 'Bloqueado. Para ativar, libere as notificações do Ficha nas configurações do Android.'
+    : perm === 'denied' ? 'Bloqueado. Para ativar, libere as notificações do Treinota nas configurações do Android.'
     : perm === 'unsupported' ? 'Disponível no app instalado no celular.'
     : 'Para o celular vibrar quando o app estiver fora da tela ou com a tela bloqueada.';
   return html`<div class="set-row"><span>Avisar fora do app<span class="mut sm block">${hint}</span></span>
@@ -2714,7 +2717,7 @@ function SettingsScreen() {
         <button type="button" class="btn ghost" onClick=${() => c.openSheet({ type: 'confirm', title: 'Recomeçar do exemplo?', text: 'Treinos, dieta, técnicas e histórico voltam para os dados de exemplo. O que você mudou será perdido.', label: 'Recomeçar', onOk: () => { c.replace(seed()); c.toast('Dados de exemplo restaurados'); } })}>Restaurar exemplo</button>
       </div>
     </section>
-    <p class="foot mut sm">Ficha · protótipo 0.1</p>
+    <p class="foot mut sm">Treinota · protótipo 0.1</p>
   </div></div>`;
 }
 
@@ -2817,8 +2820,8 @@ function LoginScreen({ onDone, note }) {
   };
   return html`<div class="screen login"><div class="wrap">
     <div class="login-top">
-      <img class="login-logo" src="icons/icon-192.png" alt="" onError=${(ev) => { ev.target.style.display = 'none'; }} />
-      <h1 class="page-title">Ficha</h1>
+      <img class="login-logo" src="icons/logo.svg" alt="" onError=${(ev) => { ev.target.style.display = 'none'; }} />
+      <h1 class="page-title">Treinota</h1>
       <p class="page-sub">${step === 'code' ? html`Enviamos um código para <b>${email.trim()}</b>` : 'Entre para continuar'}</p>
     </div>
     ${step === 'start' && html`

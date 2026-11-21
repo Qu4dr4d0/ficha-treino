@@ -1,9 +1,9 @@
-// Service worker do Ficha: guarda o app no aparelho para abrir sem internet.
+// Service worker do Treinota: guarda o app no aparelho para abrir sem internet.
 // A versão é gerada pelo tools/build.py a partir do conteúdo dos arquivos.
-const VERSION = '09bdfca63a';
+const VERSION = 'c96eb69b4a';
 const SHELL = `ficha-shell-${VERSION}`;
 const FONTS = 'ficha-fonts';
-const FILES = ['./', './index.html', './manifest.webmanifest', './vendor/htm-preact-3.1.1.js', './icons/icon-192.png', './icons/icon-512.png'];
+const FILES = ['./', './index.html', './manifest.webmanifest', './vendor/htm-preact-3.1.1.js', './icons/icon-192.png', './icons/icon-512.png', './icons/logo.svg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(SHELL).then((c) => c.addAll(FILES)));
